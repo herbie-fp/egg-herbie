@@ -1,10 +1,7 @@
-# egg: egraphs good
+# A fork of mwillsey/egg for use in herbie
 
-[![Build Status](https://travis-ci.com/mwillsey/egg.svg?branch=master)](https://travis-ci.com/mwillsey/egg)
-[![Crates.io](https://img.shields.io/crates/v/egg.svg)](https://crates.io/crates/egg)
-[![Docs.rs](https://docs.rs/egg/badge.svg)](https://docs.rs/egg/)
+[![Build Status](https://travis-ci.com/oflatt/egg-herbie.svg?branch=master)](https://travis-ci.com/oflatt/egg-herbie)
 
-Check out the [web demo](https://mwillsey.com/stuff/egg).
 
 ## Developing
 
