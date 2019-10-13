@@ -1,14 +1,14 @@
 use egg::{
     egraph::{EGraph, Metadata},
+    expr::{Expr, RecExpr},
     extract::{calculate_cost, Extractor},
     parse::ParsableLanguage,
     pattern::Pattern,
-    expr::{RecExpr, Expr},
 };
 use log::*;
 use std::time::{Duration, Instant};
 
-use egg_math::{Math, Meta, FPConstant};
+use egg_math::{FPConstant, Math, Meta};
 
 #[test]
 fn associate_adds() {

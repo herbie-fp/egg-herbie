@@ -43,7 +43,13 @@ pub unsafe extern "C" fn egraph_create() -> *mut EGraph<Math, Meta> {
 
 #[no_mangle]
 pub unsafe extern "C" fn egraph_destroy(egraph_ptr: *mut EGraph<Math, Meta>) {
-    let _counter: Box<EGraph<Math, Meta>> = transmute(egraph_ptr);
+    let _egraph_box: Box<EGraph<Math, Meta>> = transmute(egraph_ptr);
+    // Drop
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn egraph_addresult_destroy(addresult_ptr: *mut EGraphAddResult) {
+    let _addres_box: Box<EGraphAddResult> = transmute(addresult_ptr);
     // Drop
 }
 
@@ -130,33 +136,33 @@ fn run_rules(egraph: &mut EGraph<Math, Meta>, iters: u32, limit: u32) {
 define_term! {
     #[derive(Debug, PartialEq, Eq, Hash, Clone)]
     pub enum FPConstant {
-	TRUE = "TRUE",
-	FALSE = "FALSE",
-	E = "E",
-	LOG2E = "LOG2E",
-	LOG10E = "LOG10E",
-	LN2 = "LN2",
-	LN10 = "LN10",
-	PI = "PI",
-	PI_2 = "PI_2",
-	PI_4 = "PI_4",
-	PI_1ALT = "1_PI",
-	PI_2ALT = "2_PI",
-	SQRTPI_2 = "2_SQRTPI",
-	SQRT2 = "SQRT2",
-	SQRT1_2 = "SQRT1_2",
-	INFINITY = "INFINITY",
-	NAN = "NAN",
+    TRUE = "TRUE",
+    FALSE = "FALSE",
+    E = "E",
+    LOG2E = "LOG2E",
+    LOG10E = "LOG10E",
+    LN2 = "LN2",
+    LN10 = "LN10",
+    PI = "PI",
+    PI_2 = "PI_2",
+    PI_4 = "PI_4",
+    PI_1ALT = "1_PI",
+    PI_2ALT = "2_PI",
+    SQRTPI_2 = "2_SQRTPI",
+    SQRT2 = "SQRT2",
+    SQRT1_2 = "SQRT1_2",
+    INFINITY = "INFINITY",
+    NAN = "NAN",
     }
 }
 
-type Constant = NotNan<f64>;
+type Constant = i64;
 
 define_term! {
     #[derive(Debug, PartialEq, Eq, Hash, Clone)]
     pub enum Math {
         Constant(Constant),
-	FPConstant(FPConstant),
+    FPConstant(FPConstant),
         Add = "+",
         Sub = "-",
         Mul = "*",
@@ -230,7 +236,13 @@ fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
         Math::Add => Some(a(0)? + a(1)?),
         Math::Sub => Some(a(0)? - a(1)?),
         Math::Mul => Some(a(0)? * a(1)?),
-        Math::Div => Some(a(0)? / a(1)?),
+        Math::Div => {
+            if a(1)? == 0 || a(0)? % a(1)? != 0 {
+                None
+            } else {
+                Some(a(0)? / a(1)?)
+            }
+        }
         Math::Pow => None, // a(0)?.powf(a(1)?),
         Math::Exp => None, // a(0)?.exp(),
         Math::Log => None, // a(0)?.ln(),
@@ -262,7 +274,7 @@ fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
         //         None
         //     }
         // }
-        Math::Fabs => Some(Constant::new(args[0].abs()).unwrap()),
+        Math::Fabs => Some(args[0].abs()),
         Math::RealToPosit => Some(args[0]),
         _ => None,
     }
