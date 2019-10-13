@@ -43,7 +43,13 @@ pub unsafe extern "C" fn egraph_create() -> *mut EGraph<Math, Meta> {
 
 #[no_mangle]
 pub unsafe extern "C" fn egraph_destroy(egraph_ptr: *mut EGraph<Math, Meta>) {
-    let _counter: Box<EGraph<Math, Meta>> = transmute(egraph_ptr);
+    let _egraph_box: Box<EGraph<Math, Meta>> = transmute(egraph_ptr);
+    // Drop
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn egraph_addresult_destroy(addresult_ptr: *mut EGraphAddResult) {
+    let _addres_box: Box<EGraphAddResult> = transmute(addresult_ptr);
     // Drop
 }
 
@@ -150,7 +156,7 @@ define_term! {
     }
 }
 
-type Constant = NotNan<f64>;
+type Constant = i64;
 
 define_term! {
     #[derive(Debug, PartialEq, Eq, Hash, Clone)]
@@ -230,7 +236,13 @@ fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
         Math::Add => Some(a(0)? + a(1)?),
         Math::Sub => Some(a(0)? - a(1)?),
         Math::Mul => Some(a(0)? * a(1)?),
-        Math::Div => Some(a(0)? / a(1)?),
+        Math::Div => if a(1)? == 0 || a(0)? % a(1)? != 0
+	{
+	    None
+	} else
+	{
+	    Some(a(0)? / a(1)?)
+	}
         Math::Pow => None, // a(0)?.powf(a(1)?),
         Math::Exp => None, // a(0)?.exp(),
         Math::Log => None, // a(0)?.ln(),
@@ -262,7 +274,7 @@ fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
         //         None
         //     }
         // }
-        Math::Fabs => Some(Constant::new(args[0].abs()).unwrap()),
+        Math::Fabs => Some(args[0].abs()),
         Math::RealToPosit => Some(args[0]),
         _ => None,
     }
