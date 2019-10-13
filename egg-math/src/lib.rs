@@ -125,6 +125,7 @@ fn run_rules(egraph: &mut EGraph<Math, Meta>, iters: u32, limit: u32) {
         for m in matches {
             m.apply_with_limit(egraph, limit as usize);
             if egraph.total_size() > limit as usize {
+                egraph.rebuild();
                 return;
             }
         }
