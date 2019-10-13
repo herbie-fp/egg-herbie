@@ -3,11 +3,12 @@ use egg::{
     extract::{calculate_cost, Extractor},
     parse::ParsableLanguage,
     pattern::Pattern,
+    expr::{RecExpr, Expr},
 };
 use log::*;
 use std::time::{Duration, Instant};
 
-use egg_math::{Math, Meta};
+use egg_math::{Math, Meta, FPConstant};
 
 #[test]
 fn associate_adds() {

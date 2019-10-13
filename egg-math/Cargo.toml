@@ -18,4 +18,4 @@ parent-pointers = ["egg/parent-pointers"]
 
 [lib]
 name = "egg_math"
-crate-type = ["rlib", "cdylib"]
+crate-type = ["staticlib", "cdylib"]

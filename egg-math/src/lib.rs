@@ -127,12 +127,36 @@ fn run_rules(egraph: &mut EGraph<Math, Meta>, iters: u32, limit: u32) {
     }
 }
 
+define_term! {
+    #[derive(Debug, PartialEq, Eq, Hash, Clone)]
+    pub enum FPConstant {
+	TRUE = "TRUE",
+	FALSE = "FALSE",
+	E = "E",
+	LOG2E = "LOG2E",
+	LOG10E = "LOG10E",
+	LN2 = "LN2",
+	LN10 = "LN10",
+	PI = "PI",
+	PI_2 = "PI_2",
+	PI_4 = "PI_4",
+	PI_1ALT = "1_PI",
+	PI_2ALT = "2_PI",
+	SQRTPI_2 = "2_SQRTPI",
+	SQRT2 = "SQRT2",
+	SQRT1_2 = "SQRT1_2",
+	INFINITY = "INFINITY",
+	NAN = "NAN",
+    }
+}
+
 type Constant = NotNan<f64>;
 
 define_term! {
     #[derive(Debug, PartialEq, Eq, Hash, Clone)]
     pub enum Math {
         Constant(Constant),
+	FPConstant(FPConstant),
         Add = "+",
         Sub = "-",
         Mul = "*",
@@ -174,7 +198,7 @@ define_term! {
 impl Language for Math {
     fn cost(&self, children: &[u64]) -> u64 {
         let cost = match self {
-            Math::Constant(_) | Math::Variable(_) => 1,
+            Math::Constant(_) | Math::Variable(_) | Math::FPConstant(_) => 1,
             Math::Add => 40,
             Math::Sub => 40,
             Math::Mul => 40,
