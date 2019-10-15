@@ -97,10 +97,10 @@ pub unsafe extern "C" fn egraph_get_simplest(
     node_id: u32,
 ) -> *const c_char {
     let egraph = &mut *egraph_ptr;
-    let ext = Extractor::new(&egraph);
-    let best = ext.find_best(node_id);
+    
+    let best = &egraph[node_id].metadata.best;
 
-    let best_str = CString::new(best.expr.to_sexp().to_string()).unwrap();
+    let best_str = CString::new(best.to_sexp().to_string()).unwrap();
     let best_str_pointer = best_str.as_ptr();
     std::mem::forget(best_str);
     best_str_pointer
@@ -227,21 +227,8 @@ define_term! {
 impl Language for Math {
     fn cost(&self, children: &[u64]) -> u64 {
         let cost = match self {
-            Math::Constant(_) | Math::Variable(_) | Math::FPConstant(_) => 1,
-            Math::Add => 40,
-            Math::Sub => 40,
-            Math::Mul => 40,
-            Math::Div => 40,
-            Math::Pow => 210,
-            Math::Exp => 70,
-            Math::Log => 70,
-            Math::Sqrt => 40,
-            Math::Cbrt => 80,
-            Math::Fabs => 40,
-            Math::RealToPosit => 70,
-            Math::Expm1 => 70,
-            Math::Log1p => 70,
-	    _ => 70,
+            Math::Constant(_) | Math::Variable(_) | Math::FPConstant(_) => 0,
+	    _ => 1,
         };
 
         cost + children.iter().sum::<u64>()
