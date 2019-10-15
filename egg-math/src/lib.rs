@@ -158,46 +158,68 @@ define_term! {
 }
 
 type Constant = i64;
-
+// operators from FPCore
 define_term! {
     #[derive(Debug, PartialEq, Eq, Hash, Clone)]
     pub enum Math {
         Constant(Constant),
-    FPConstant(FPConstant),
+
+	Erf = "erf",
+	Erfc = "erfc",
+	Tgamma = "tgamma",
+	Lgamma = "lgamma",
+	Ceil = "ceil",
+	Floor = "floor",
+	Fmod = "fmod",
+	Remainder = "remainder",
+	Fmax = "fmax",
+	Fmin = "fmin",
+	Fdim = "fdim",
+	Copysign = "copysign",
+	Trunc = "trunc",
+	Round = "round",
+	NearbyInt = "nearbyint",
+	
+	
+	    
         Add = "+",
         Sub = "-",
         Mul = "*",
         Div = "/",
         Pow = "pow",
         Exp = "exp",
+	Exp2 = "exp2",
         Log = "log",
         Sqrt = "sqrt",
         Cbrt = "cbrt",
         Fabs = "fabs",
-        // Sin = "sin",
-        // Cos = "cos",
-        // Tan = "tan",
-        // Asin = "asin",
-        // Acos = "acos",
-        // Atan = "atan",
-        // Atan2 = "atan2",
-        // Sinh = "sinh",
-        // Cosh = "cosh",
-        // Tanh = "tanh",
-        // Asinh = "asinh",
-        // Acosh = "acosh",
-        // Atanh = "atanh",
+        Sin = "sin",
+        Cos = "cos",
+        Tan = "tan",
+        Asin = "asin",
+        Acos = "acos",
+        Atan = "atan",
+        Atan2 = "atan2",
+        Sinh = "sinh",
+        Cosh = "cosh",
+        Tanh = "tanh",
+        Asinh = "asinh",
+        Acosh = "acosh",
+        Atanh = "atanh",
 
-        // Fma = "fma",
+        Fma = "fma",
         Log1p = "log1p",
+	Log10 = "log10",
+	Log2 = "log2",
         Expm1 = "expm1",
-        // Hypot = "hypot",
+        Hypot = "hypot",
 
-        // PositAdd = "+.p16",
-        // PositSub = "-.p16",
-        // PositMul = "*.p16",
-        // PositDiv = "/.p16",
+        PositAdd = "+.p16",
+        PositSub = "-.p16",
+        PositMul = "*.p16",
+        PositDiv = "/.p16",
         RealToPosit = "real->posit",
+	FPConstant(FPConstant),
         Variable(Name),
     }
 }
@@ -216,9 +238,10 @@ impl Language for Math {
             Math::Sqrt => 40,
             Math::Cbrt => 80,
             Math::Fabs => 40,
-            Math::RealToPosit => 0,
+            Math::RealToPosit => 70,
             Math::Expm1 => 70,
             Math::Log1p => 70,
+	    _ => 70,
         };
 
         cost + children.iter().sum::<u64>()
@@ -317,9 +340,9 @@ impl egg::egraph::Metadata<Math> for Meta {
 
     fn modify(eclass: &mut EClass<Math, Self>) {
         // NOTE pruning vs not pruning is decided right here
-        let best = eclass.metadata.best.as_ref();
-        if best.children.is_empty() {
-            eclass.nodes = vec![Expr::unit(best.op.clone())]
-        }
+        //let best = eclass.metadata.best.as_ref();
+        //if best.children.is_empty() {
+          //  eclass.nodes = vec![Expr::unit(best.op.clone())]
+        //}
     }
 }
