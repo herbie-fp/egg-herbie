@@ -110,6 +110,7 @@ fn run_rules(egraph: &mut EGraph<Math, Meta>, iters: u32, limit: u32) {
     let rules = rules();
 
     for _i in 0..iters {
+	let size_before = egraph.total_size();
         let mut matches = Vec::new();
         for (_name, list) in rules.iter() {
             for rule in list {
@@ -124,11 +125,16 @@ fn run_rules(egraph: &mut EGraph<Math, Meta>, iters: u32, limit: u32) {
 
         for m in matches {
             m.apply_with_limit(egraph, limit as usize);
-            if egraph.total_size() > limit as usize {
+            if (egraph.total_size() > limit as usize) {
                 egraph.rebuild();
                 return;
             }
         }
+
+	if(size_before >= egraph.total_size()) {
+	    egraph.rebuild();
+            return;
+	}
 
         egraph.rebuild();
     }
