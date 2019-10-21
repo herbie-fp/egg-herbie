@@ -4,11 +4,9 @@ use egg::{
     define_term,
     egraph::{EClass, EGraph},
     expr::{Expr, Language, Name, RecExpr},
-    extract::Extractor,
     parse::ParsableLanguage,
 };
 
-use ordered_float::NotNan;
 pub type MathEGraph<M = Meta> = egg::egraph::EGraph<Math, M>;
 
 mod rules;
@@ -97,7 +95,7 @@ pub unsafe extern "C" fn egraph_get_simplest(
     node_id: u32,
 ) -> *const c_char {
     let egraph = &mut *egraph_ptr;
-    
+
     let best = &egraph[node_id].metadata.best;
 
     let best_str = CString::new(best.to_sexp().to_string()).unwrap();
@@ -110,7 +108,7 @@ fn run_rules(egraph: &mut EGraph<Math, Meta>, iters: u32, limit: u32) {
     let rules = rules();
 
     for _i in 0..iters {
-	let size_before = egraph.total_size();
+        let size_before = egraph.total_size();
         let mut matches = Vec::new();
         for (_name, list) in rules.iter() {
             for rule in list {
@@ -125,16 +123,16 @@ fn run_rules(egraph: &mut EGraph<Math, Meta>, iters: u32, limit: u32) {
 
         for m in matches {
             m.apply_with_limit(egraph, limit as usize);
-            if (egraph.total_size() > limit as usize) {
+            if egraph.total_size() > limit as usize {
                 egraph.rebuild();
                 return;
             }
         }
 
-	if(size_before >= egraph.total_size()) {
-	    egraph.rebuild();
+        if size_before >= egraph.total_size() {
+            egraph.rebuild();
             return;
-	}
+        }
 
         egraph.rebuild();
     }
@@ -143,23 +141,23 @@ fn run_rules(egraph: &mut EGraph<Math, Meta>, iters: u32, limit: u32) {
 define_term! {
     #[derive(Debug, PartialEq, Eq, Hash, Clone)]
     pub enum FPConstant {
-    TRUE = "TRUE",
-    FALSE = "FALSE",
+    True = "TRUE",
+    False = "FALSE",
     E = "E",
-    LOG2E = "LOG2E",
-    LOG10E = "LOG10E",
-    LN2 = "LN2",
-    LN10 = "LN10",
-    PI = "PI",
-    PI_2 = "PI_2",
-    PI_4 = "PI_4",
-    PI_1ALT = "1_PI",
-    PI_2ALT = "2_PI",
-    SQRTPI_2 = "2_SQRTPI",
-    SQRT2 = "SQRT2",
-    SQRT1_2 = "SQRT1_2",
-    INFINITY = "INFINITY",
-    NAN = "NAN",
+    Log2E = "LOG2E",
+    Log10E = "LOG10E",
+    Ln2 = "LN2",
+    Ln10 = "LN10",
+    Pi = "PI",
+    Pi2 = "PI_2",
+    Pi4 = "PI_4",
+    Pi1Alt = "1_PI",
+    Pi2Alt = "2_PI",
+    Sqrtpi2 = "2_SQRTPI",
+    Sqrt2 = "SQRT2",
+    Sqrt1_2 = "SQRT1_2",
+    Infinity = "INFINITY",
+    Nan = "NAN",
     }
 }
 
@@ -170,31 +168,31 @@ define_term! {
     pub enum Math {
         Constant(Constant),
 
-	Erf = "erf",
-	Erfc = "erfc",
-	Tgamma = "tgamma",
-	Lgamma = "lgamma",
-	Ceil = "ceil",
-	Floor = "floor",
-	Fmod = "fmod",
-	Remainder = "remainder",
-	Fmax = "fmax",
-	Fmin = "fmin",
-	Fdim = "fdim",
-	Copysign = "copysign",
-	Trunc = "trunc",
-	Round = "round",
-	NearbyInt = "nearbyint",
-	
-	
-	    
+    Erf = "erf",
+    Erfc = "erfc",
+    Tgamma = "tgamma",
+    Lgamma = "lgamma",
+    Ceil = "ceil",
+    Floor = "floor",
+    Fmod = "fmod",
+    Remainder = "remainder",
+    Fmax = "fmax",
+    Fmin = "fmin",
+    Fdim = "fdim",
+    Copysign = "copysign",
+    Trunc = "trunc",
+    Round = "round",
+    NearbyInt = "nearbyint",
+
+
+
         Add = "+",
         Sub = "-",
         Mul = "*",
         Div = "/",
         Pow = "pow",
         Exp = "exp",
-	Exp2 = "exp2",
+    Exp2 = "exp2",
         Log = "log",
         Sqrt = "sqrt",
         Cbrt = "cbrt",
@@ -215,8 +213,8 @@ define_term! {
 
         Fma = "fma",
         Log1p = "log1p",
-	Log10 = "log10",
-	Log2 = "log2",
+    Log10 = "log10",
+    Log2 = "log2",
         Expm1 = "expm1",
         Hypot = "hypot",
 
@@ -225,7 +223,7 @@ define_term! {
         PositMul = "*.p16",
         PositDiv = "/.p16",
         RealToPosit = "real->posit",
-	FPConstant(FPConstant),
+    FPConstant(FPConstant),
         Variable(Name),
     }
 }
@@ -234,7 +232,7 @@ impl Language for Math {
     fn cost(&self, children: &[u64]) -> u64 {
         let cost = match self {
             Math::Constant(_) | Math::Variable(_) | Math::FPConstant(_) => 0,
-	    _ => 1,
+            _ => 1,
         };
 
         cost + children.iter().sum::<u64>()
@@ -331,11 +329,11 @@ impl egg::egraph::Metadata<Math> for Meta {
         }
     }
 
-    fn modify(eclass: &mut EClass<Math, Self>) {
+    fn modify(_eclass: &mut EClass<Math, Self>) {
         // NOTE pruning vs not pruning is decided right here
         //let best = eclass.metadata.best.as_ref();
         //if best.children.is_empty() {
-          //  eclass.nodes = vec![Expr::unit(best.op.clone())]
+        //  eclass.nodes = vec![Expr::unit(best.op.clone())]
         //}
     }
 }
