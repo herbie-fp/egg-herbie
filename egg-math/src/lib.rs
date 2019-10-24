@@ -168,21 +168,32 @@ define_term! {
     pub enum Math {
         Constant(Constant),
 
-    Erf = "erf",
-    Erfc = "erfc",
-    Tgamma = "tgamma",
-    Lgamma = "lgamma",
-    Ceil = "ceil",
-    Floor = "floor",
-    Fmod = "fmod",
-    Remainder = "remainder",
-    Fmax = "fmax",
-    Fmin = "fmin",
-    Fdim = "fdim",
-    Copysign = "copysign",
-    Trunc = "trunc",
-    Round = "round",
-    NearbyInt = "nearbyint",
+	Re = "re",
+	Im = "im",
+	Complex = "complex",
+	Conj = "conj",
+	Addc = "+.c",
+	Subc = "-.c",
+	Negc = "neg.c",
+	Divc = "/.c",
+	Mulc = "*.c",
+	    
+	
+	Erf = "erf",
+	Erfc = "erfc",
+	Tgamma = "tgamma",
+	Lgamma = "lgamma",
+	Ceil = "ceil",
+	Floor = "floor",
+	Fmod = "fmod",
+	Remainder = "remainder",
+	Fmax = "fmax",
+	Fmin = "fmin",
+	Fdim = "fdim",
+	Copysign = "copysign",
+	Trunc = "trunc",
+	Round = "round",
+	NearbyInt = "nearbyint",
 
 
 
@@ -192,7 +203,7 @@ define_term! {
         Div = "/",
         Pow = "pow",
         Exp = "exp",
-    Exp2 = "exp2",
+	Exp2 = "exp2",
         Log = "log",
         Sqrt = "sqrt",
         Cbrt = "cbrt",
@@ -213,8 +224,8 @@ define_term! {
 
         Fma = "fma",
         Log1p = "log1p",
-    Log10 = "log10",
-    Log2 = "log2",
+	Log10 = "log10",
+	Log2 = "log2",
         Expm1 = "expm1",
         Hypot = "hypot",
 
@@ -223,7 +234,7 @@ define_term! {
         PositMul = "*.p16",
         PositDiv = "/.p16",
         RealToPosit = "real->posit",
-    FPConstant(FPConstant),
+	FPConstant(FPConstant),
         Variable(Name),
     }
 }
@@ -333,7 +344,7 @@ impl egg::egraph::Metadata<Math> for Meta {
         // NOTE pruning vs not pruning is decided right here
         //let best = eclass.metadata.best.as_ref();
         //if best.children.is_empty() {
-        //  eclass.nodes = vec![Expr::unit(best.op.clone())]
+          //eclass.nodes = vec![Expr::unit(best.op.clone())]
         //}
     }
 }
