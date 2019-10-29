@@ -10,12 +10,15 @@ log = "0.4"
 indexmap = "1.1"
 libc = "0.2.0"
 
+
+num-rational = "0.2.2"
 ordered-float = "1"
 env_logger = "0.6"
+
 
 [features]
 parent-pointers = ["egg/parent-pointers"]
 
 [lib]
 name = "egg_math"
-crate-type = ["staticlib", "cdylib"]
+crate-type = ["rlib", "cdylib"]
