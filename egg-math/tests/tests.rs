@@ -162,7 +162,7 @@ fn fold_after_rewrite() {
                 (* (- 2 1)
                    a)))",
         end: "1",
-        iters: 6,
+        iters: 4,
         limit: 10_000,
     }
     .check();

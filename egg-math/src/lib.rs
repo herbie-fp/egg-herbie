@@ -351,11 +351,12 @@ impl egg::egraph::Metadata<Math> for Meta {
         }
     }
 
-    fn modify(_eclass: &mut EClass<Math, Self>) {
+    fn modify(eclass: &mut EClass<Math, Self>) {
+	
         // NOTE pruning vs not pruning is decided right here
-        //let best = eclass.metadata.best.as_ref();
-        //if best.children.is_empty() {
-            //eclass.nodes = vec![Expr::unit(best.op.clone())]
-        //}
+        let best = eclass.metadata.best.as_ref();
+        if best.children.is_empty() {
+            eclass.nodes.push(Expr::unit(best.op.clone()));
+        }
     }
 }
