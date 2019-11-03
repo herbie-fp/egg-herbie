@@ -7,7 +7,8 @@ use egg::{
     parse::ParsableLanguage,
 };
 
-use num_rational::{Ratio, Rational64};
+use num_traits::{Zero};
+use num_rational::{Ratio, BigRational};
 
 pub type MathEGraph<M = Meta> = egg::egraph::EGraph<Math, M>;
 
@@ -163,40 +164,41 @@ define_term! {
     }
 }
 
-type Constant = Rational64;
+type Constant = BigRational;
 // operators from FPCore
 define_term! {
     #[derive(Debug, PartialEq, Eq, Hash, Clone)]
     pub enum Math {
         Constant(Constant),
 
-    // complex operators not from FPCore
-    Re = "re",
-    Im = "im",
-    Complex = "complex",
-    Conj = "conj",
-    Addc = "+.c",
-    Subc = "-.c",
-    Negc = "neg.c",
-    Divc = "/.c",
-    Mulc = "*.c",
+	// complex operators not from FPCore
+	Re = "re",
+	Im = "im",
+	Complex = "complex",
+	Conj = "conj",
+	Addc = "+.c",
+	Subc = "-.c",
+	Negc = "neg.c",
+	Divc = "/.c",
+	Mulc = "*.c",
 
 
-    Erf = "erf",
-    Erfc = "erfc",
-    Tgamma = "tgamma",
-    Lgamma = "lgamma",
-    Ceil = "ceil",
-    Floor = "floor",
-    Fmod = "fmod",
-    Remainder = "remainder",
-    Fmax = "fmax",
-    Fmin = "fmin",
-    Fdim = "fdim",
-    Copysign = "copysign",
-    Trunc = "trunc",
-    Round = "round",
-    NearbyInt = "nearbyint",
+	// FPCore operations
+	Erf = "erf",
+	Erfc = "erfc",
+	Tgamma = "tgamma",
+	Lgamma = "lgamma",
+	Ceil = "ceil",
+	Floor = "floor",
+	Fmod = "fmod",
+	Remainder = "remainder",
+	Fmax = "fmax",
+	Fmin = "fmin",
+	Fdim = "fdim",
+	Copysign = "copysign",
+	Trunc = "trunc",
+	Round = "round",
+	NearbyInt = "nearbyint",
 
 
 
@@ -206,7 +208,7 @@ define_term! {
         Div = "/",
         Pow = "pow",
         Exp = "exp",
-    Exp2 = "exp2",
+	Exp2 = "exp2",
         Log = "log",
         Sqrt = "sqrt",
         Cbrt = "cbrt",
@@ -227,8 +229,8 @@ define_term! {
 
         Fma = "fma",
         Log1p = "log1p",
-    Log10 = "log10",
-    Log2 = "log2",
+	Log10 = "log10",
+	Log2 = "log2",
         Expm1 = "expm1",
         Hypot = "hypot",
 
@@ -237,7 +239,7 @@ define_term! {
         PositMul = "*.p16",
         PositDiv = "/.p16",
         RealToPosit = "real->posit",
-    FPConstant(FPConstant),
+	FPConstant(FPConstant),
         Variable(Name),
     }
 }
@@ -266,7 +268,7 @@ fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
         Math::Sub => Some(a(0)? - a(1)?),
         Math::Mul => Some(a(0)? * a(1)?),
         Math::Div => {
-            if a(1)?.numer() == &0 {
+            if a(1)?.is_zero() {
                 None
             } else {
                 Some(a(0)? / a(1)?)
@@ -304,13 +306,13 @@ fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
         //     }
         // }
         Math::Fabs => {
-            if a(0)? < Ratio::from_integer(0) {
+            if a(0)? < Ratio::from_integer(Zero::zero()) {
                 Some(-a(0)?)
             } else {
                 Some(a(0)?)
             }
         }
-        Math::RealToPosit => Some(args[0]),
+        Math::RealToPosit => Some(a(0)?),
         _ => None,
     }
 }
@@ -331,7 +333,7 @@ impl egg::egraph::Metadata<Math> for Meta {
                 .children
                 .iter()
                 .map(|meta| match meta.best.as_ref().op {
-                    Math::Constant(c) => Some(c),
+                    Math::Constant(ref c) => Some(c.clone()),
                     _ => None,
                 })
                 .collect();
@@ -349,11 +351,11 @@ impl egg::egraph::Metadata<Math> for Meta {
         }
     }
 
-    fn modify(eclass: &mut EClass<Math, Self>) {
+    fn modify(_eclass: &mut EClass<Math, Self>) {
         // NOTE pruning vs not pruning is decided right here
-        let best = eclass.metadata.best.as_ref();
-        if best.children.is_empty() {
-            eclass.nodes = vec![Expr::unit(best.op.clone())]
-        }
+        //let best = eclass.metadata.best.as_ref();
+        //if best.children.is_empty() {
+            //eclass.nodes = vec![Expr::unit(best.op.clone())]
+        //}
     }
 }

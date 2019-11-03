@@ -157,23 +157,6 @@ fn does_not_simplify() {
 }
 
 #[test]
-fn simplifies() {
-    CheckSimplify {
-        start: r#"
-          (/ 1
-             (- (/ (+ 1 (sqrt five))
-                   2)
-                (/ (- 1 (sqrt five))
-                   2)))
-        "#,
-        end: "(/ 1 (sqrt five))",
-        iters: 6,
-        limit: 75_000,
-    }
-    .check();
-}
-
-#[test]
 fn fold_after_rewrite() {
     CheckSimplify {
         start: "

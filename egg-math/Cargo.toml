@@ -12,6 +12,8 @@ libc = "0.2.0"
 
 
 num-rational = "0.2.2"
+num-bigint = "0.2.2"
+num-traits = "0.2.8"
 ordered-float = "1"
 env_logger = "0.6"
 
