@@ -1,14 +1,12 @@
 use egg::{
     egraph::{EGraph, Metadata},
-    expr::{Expr, RecExpr},
-    extract::{calculate_cost, Extractor},
     parse::ParsableLanguage,
     pattern::Pattern,
 };
 use log::*;
 use std::time::{Duration, Instant};
 
-use egg_math::{FPConstant, Math, Meta};
+use egg_math::{Math, Meta};
 
 #[test]
 fn associate_adds() {
@@ -126,12 +124,11 @@ impl CheckSimplify {
 
         let (mut egraph, root) = EGraph::<Math, Meta>::from_expr(&start_expr);
         run_rules(&mut egraph, self.iters, self.limit);
+	
+	let metadata = &egraph[root].metadata;
+        println!("Best ({}): {}", metadata.cost, metadata.best.to_sexp());
 
-        let ext = Extractor::new(&egraph);
-        let best = ext.find_best(root);
-        println!("Best ({}): {}", best.cost, best.expr.to_sexp());
-
-        if best.expr != end_expr {
+        if metadata.best != end_expr {
             println!("start: {}", start_expr.to_sexp());
             println!("start: {:?}", start_expr);
             panic!("Could not simplify {} to {}", self.start, self.end);
@@ -165,7 +162,7 @@ fn fold_after_rewrite() {
                 (* (- 2 1)
                    a)))",
         end: "1",
-        iters: 4,
+        iters: 6,
         limit: 10_000,
     }
     .check();
@@ -227,7 +224,7 @@ fn do_something() {
     let start_expr = Math::parse_expr(EXP).unwrap();
     let (mut egraph, root) = EGraph::<Math, Meta>::from_expr(&start_expr);
 
-    let herbies_result = "(*
+    let _herbies_result = "(*
   (*
    (*
     (/
@@ -245,26 +242,14 @@ fn do_something() {
     (pow (- 1 (/ 1 (+ (exp (- 0 t)) 1))) c_n))
    (/ (pow (/ 1 (+ (exp (- 0 s)) 1)) c_p) (pow (/ 1 (+ (exp (- 0 t)) 1)) c_p))))";
 
-    let other_expr = Math::parse_expr(herbies_result).unwrap();
-    println!(
-        "Herbie ({}): {}",
-        calculate_cost(&other_expr),
-        other_expr.to_sexp()
-    );
-
     run_rules(&mut egraph, 3, 20_000);
     let start_time = Instant::now();
 
-    let ext = Extractor::new(&egraph);
-    let best = ext.find_best(root);
+    let metadata = &egraph[root].metadata;
     let extract_time = start_time.elapsed();
 
-    println!(
-        "Start ({}): {}",
-        calculate_cost(&start_expr),
-        start_expr.to_sexp()
-    );
-    println!("Best ({}): {}", best.cost, best.expr.to_sexp());
+    
+    println!("Best ({}): {}", metadata.cost, metadata.best.to_sexp());
 
     println!("Extract time: {:.4}", extract_time.as_secs_f64());
 }
