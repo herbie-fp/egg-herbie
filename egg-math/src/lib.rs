@@ -17,7 +17,8 @@ pub use rules::rules;
 
 use std::ffi::{CStr, CString};
 use std::mem::transmute;
-use std::os::raw::c_char;
+use std::os::raw::{c_char, c_int};
+use std::slice;
 
 unsafe fn cstring_to_recexpr(c_string: *const c_char) -> Option<RecExpr<Math>> {
     let bytes = CStr::from_ptr(c_string).to_bytes();
@@ -33,6 +34,8 @@ unsafe fn cstring_to_recexpr(c_string: *const c_char) -> Option<RecExpr<Math>> {
         Err(_error) => None,
     }
 }
+
+
 
 // I had to add $(rustc --print sysroot)/lib to LD_LIBRARY_PATH to get linking to work after installing rust with rustup
 #[no_mangle]
@@ -85,11 +88,15 @@ pub unsafe extern "C" fn egraph_add_expr(
 #[no_mangle]
 pub unsafe extern "C" fn egraph_run_rules(
     egraph_ptr: *mut EGraph<Math, Meta>,
-    iters: u32,
     limit: u32,
+    rules_array_ptr : *const *const c_char
 ) {
     let egraph = &mut *egraph_ptr;
-    run_rules(egraph, iters, limit);
+    let rules = Vec::from_fn(rules_array_ptr.leng
+    let rules_strings : &[c_char] = slice::from_raw_parts(rules_array_ptr, rules_array_length as usize);
+    
+    
+    run_rules(egraph, limit);
 }
 
 #[no_mangle]
@@ -107,10 +114,10 @@ pub unsafe extern "C" fn egraph_get_simplest(
     best_str_pointer
 }
 
-fn run_rules(egraph: &mut EGraph<Math, Meta>, iters: u32, limit: u32) {
+fn run_rules(egraph: &mut EGraph<Math, Meta>, limit: u32) {
     let rules = rules();
-
-    for _i in 0..iters {
+    let running = true;
+    while running {
         let size_before = egraph.total_size();
         let mut matches = Vec::new();
         for (_name, list) in rules.iter() {
