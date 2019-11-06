@@ -5,6 +5,7 @@ use egg::{
     egraph::{EClass, EGraph},
     expr::{Expr, Language, Name, RecExpr},
     parse::ParsableLanguage,
+    pattern::Rewrite,
 };
 
 use num_traits::{Zero};
@@ -13,7 +14,6 @@ use num_rational::{Ratio, BigRational};
 pub type MathEGraph<M = Meta> = egg::egraph::EGraph<Math, M>;
 
 mod rules;
-pub use rules::rules;
 
 use std::ffi::{CStr, CString};
 use std::mem::transmute;
@@ -64,6 +64,15 @@ pub struct EGraphAddResult {
     successp: bool,
 }
 
+// a struct to report failure if the add fails
+#[repr(C)]
+pub struct FFIRule {
+    name: *const c_char,
+    left: *const c_char,
+    right: *const c_char,
+}
+
+
 #[no_mangle]
 pub unsafe extern "C" fn egraph_add_expr(
     egraph_ptr: *mut EGraph<Math, Meta>,
@@ -85,18 +94,43 @@ pub unsafe extern "C" fn egraph_add_expr(
     Box::into_raw(Box::new(result))
 }
 
+// todo don't just unwrap
+unsafe fn ffirule_to_tuple(rule_ptr: *mut FFIRule) -> (String, String, String) {
+    let rule = &mut *rule_ptr;
+    let bytes1 = CStr::from_ptr(rule.name).to_bytes();
+    let string_result1 = String::from_utf8(bytes1.to_vec()).unwrap();
+    let bytes2 = CStr::from_ptr(rule.name).to_bytes();
+    let string_result2 = String::from_utf8(bytes2.to_vec()).unwrap();
+    let bytes3 = CStr::from_ptr(rule.name).to_bytes();
+    let string_result3 = String::from_utf8(bytes3.to_vec()).unwrap();
+    (string_result1, string_result2, string_result3)
+}
+
 #[no_mangle]
 pub unsafe extern "C" fn egraph_run_rules(
     egraph_ptr: *mut EGraph<Math, Meta>,
     limit: u32,
-    rules_array_ptr : *const *const c_char
+    rules_array_ptr : *const *mut FFIRule,
+    rules_array_length : c_int,
 ) {
+    let length : usize = rules_array_length as usize;
     let egraph = &mut *egraph_ptr;
-    let rules = Vec::from_fn(rules_array_ptr.leng
-    let rules_strings : &[c_char] = slice::from_raw_parts(rules_array_ptr, rules_array_length as usize);
     
+    let ffi_rules : &[*mut FFIRule] = slice::from_raw_parts(rules_array_ptr, length);
+    let mut ffi_tuples : Vec<(&str, &str, &str)> = vec![];
+    let mut ffi_strings : Vec<(String, String, String)> = vec![];
+    for i in 0..length {
+	let str_tuple = ffirule_to_tuple(ffi_rules[i]);
+	ffi_strings.push(str_tuple);
+    }
+
+    for i in 0..length {
+	ffi_tuples.push((&ffi_strings[i].0, &ffi_strings[i].1, &ffi_strings[i].2));
+    }
+
+    let rules: Vec<Rewrite<Math, Meta>> = rules::mk_rules(&ffi_tuples);
     
-    run_rules(egraph, limit);
+    run_rules(egraph, limit, rules);
 }
 
 #[no_mangle]
@@ -114,20 +148,15 @@ pub unsafe extern "C" fn egraph_get_simplest(
     best_str_pointer
 }
 
-fn run_rules(egraph: &mut EGraph<Math, Meta>, limit: u32) {
-    let rules = rules();
+fn run_rules(egraph: &mut EGraph<Math, Meta>, limit: u32, rules: Vec<Rewrite<Math, Meta>>) {
     let running = true;
     while running {
         let size_before = egraph.total_size();
         let mut matches = Vec::new();
-        for (_name, list) in rules.iter() {
-            for rule in list {
-                let ms = rule.search(&egraph);
-                if !ms.is_empty() {
-                    matches.push(ms);
-                }
-                // rule.run(&mut egraph);
-                // egraph.rebuild();
+        for rule in rules.iter() {
+            let ms = rule.search(&egraph);
+            if !ms.is_empty() {
+                matches.push(ms);
             }
         }
 

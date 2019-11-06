@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 use crate::Math;
 use egg::{egraph::Metadata, parse::ParsableLanguage, pattern::Rewrite};
 
-fn mk_rules<M: Metadata<Math>>(tuples: &[(&str, &str, &str)]) -> Vec<Rewrite<Math, M>> {
+pub fn mk_rules<M: Metadata<Math>>(tuples: &[(&str, &str, &str)]) -> Vec<Rewrite<Math, M>> {
     tuples
         .iter()
         .map(|(name, left, right)| Math::parse_rewrite(name, left, right).unwrap())
