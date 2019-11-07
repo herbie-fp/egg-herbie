@@ -8,5 +8,5 @@
 It's written in [Rust](https://www.rust-lang.org/).
 Typically, you install Rust using [`rustup`](https://www.rust-lang.org/tools/install).
 
-Before committing/pushing, make to check stuff
+Before committing/pushing, run `make` to check tests and formatting.
 
