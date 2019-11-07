@@ -6,7 +6,10 @@ use egg::{
 use log::*;
 use std::time::{Duration, Instant};
 
-use egg_math::{Math, Meta};
+use egg_math::{
+    eggmath::{Math,Meta},
+    rules::{math_rules},
+};
 
 #[test]
 fn associate_adds() {
@@ -17,7 +20,7 @@ fn associate_adds() {
     let (mut egraph, _root) = EGraph::<Math, ()>::from_expr(&start_expr);
 
     let rules = {
-        let all = egg_math::rules();
+        let all = math_rules();
         let mut r = Vec::new();
         r.extend(all["associativity"].clone());
         r.extend(all["commutativity"].clone());
@@ -41,7 +44,7 @@ fn run_rules<M>(egraph: &mut EGraph<Math, M>, iters: usize, limit: usize) -> Dur
 where
     M: Metadata<Math>,
 {
-    let rules = egg_math::rules();
+    let rules = math_rules();
     let start_time = Instant::now();
 
     for i in 0..iters {

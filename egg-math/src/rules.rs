@@ -11,7 +11,7 @@ pub fn mk_rules<M: Metadata<Math>>(tuples: &[(&str, &str, &str)]) -> Vec<Rewrite
 }
 
 #[rustfmt::skip]
-pub fn rules<M: Metadata<Math>>() -> IndexMap<&'static str, Vec<Rewrite<Math, M>>> {
+pub fn math_rules<M: Metadata<Math>>() -> IndexMap<&'static str, Vec<Rewrite<Math, M>>> {
     let mut m = IndexMap::new();
     let mut add = |name, rules| {
         if m.contains_key(name) {
