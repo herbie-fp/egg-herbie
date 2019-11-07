@@ -2,24 +2,15 @@ extern crate libc;
 pub mod eggmath;
 pub mod rules;
 
-use crate::{
-    eggmath::{Meta, Math},
-};
+use crate::eggmath::{Math, Meta};
 
-use egg::{
-    egraph::{EGraph},
-    expr::{RecExpr},
-    parse::ParsableLanguage,
-    pattern::Rewrite,
-};
+use egg::{egraph::EGraph, expr::RecExpr, parse::ParsableLanguage, pattern::Rewrite};
 
 pub type MathEGraph<M = Meta> = egg::egraph::EGraph<Math, M>;
 
-
-
 use std::ffi::{CStr, CString};
 use std::mem::transmute;
-use std::os::raw::{c_char};
+use std::os::raw::c_char;
 use std::slice;
 
 unsafe fn cstring_to_recexpr(c_string: *const c_char) -> Option<RecExpr<Math>> {
@@ -36,8 +27,6 @@ unsafe fn cstring_to_recexpr(c_string: *const c_char) -> Option<RecExpr<Math>> {
         Err(_error) => None,
     }
 }
-
-
 
 // I had to add $(rustc --print sysroot)/lib to LD_LIBRARY_PATH to get linking to work after installing rust with rustup
 #[no_mangle]
@@ -73,7 +62,6 @@ pub struct FFIRule {
     left: *const c_char,
     right: *const c_char,
 }
-
 
 #[no_mangle]
 pub unsafe extern "C" fn egraph_add_expr(
@@ -112,26 +100,26 @@ unsafe fn ffirule_to_tuple(rule_ptr: *mut FFIRule) -> (String, String, String) {
 pub unsafe extern "C" fn egraph_run_rules(
     egraph_ptr: *mut EGraph<Math, Meta>,
     limit: u32,
-    rules_array_ptr : *const *mut FFIRule,
-    rules_array_length : u32,
+    rules_array_ptr: *const *mut FFIRule,
+    rules_array_length: u32,
 ) {
-    let length : usize = rules_array_length as usize;
+    let length: usize = rules_array_length as usize;
     let egraph = &mut *egraph_ptr;
-    
-    let ffi_rules : &[*mut FFIRule] = slice::from_raw_parts(rules_array_ptr, length);
-    let mut ffi_tuples : Vec<(&str, &str, &str)> = vec![];
-    let mut ffi_strings : Vec<(String, String, String)> = vec![];
-    for i in 0..length {
-	let str_tuple = ffirule_to_tuple(ffi_rules[i]);
-	ffi_strings.push(str_tuple);
+
+    let ffi_rules: &[*mut FFIRule] = slice::from_raw_parts(rules_array_ptr, length);
+    let mut ffi_tuples: Vec<(&str, &str, &str)> = vec![];
+    let mut ffi_strings: Vec<(String, String, String)> = vec![];
+    for ffi_rule in ffi_rules.iter() {
+        let str_tuple = ffirule_to_tuple(*ffi_rule);
+        ffi_strings.push(str_tuple);
     }
 
-    for i in 0..length {
-	ffi_tuples.push((&ffi_strings[i].0, &ffi_strings[i].1, &ffi_strings[i].2));
+    for ffi_string in ffi_strings.iter() {
+        ffi_tuples.push((&ffi_string.0, &ffi_string.1, &ffi_string.2));
     }
 
     let rules: Vec<Rewrite<Math, Meta>> = rules::mk_rules(&ffi_tuples);
-    
+
     run_rules(egraph, limit, rules);
 }
 
@@ -151,7 +139,7 @@ pub unsafe extern "C" fn egraph_get_simplest(
 }
 
 fn run_rules(egraph: &mut EGraph<Math, Meta>, limit: u32, rules: Vec<Rewrite<Math, Meta>>) {
-    let running = true;
+    let mut running = true;
     while running {
         let size_before = egraph.total_size();
         let mut matches = Vec::new();
@@ -165,17 +153,15 @@ fn run_rules(egraph: &mut EGraph<Math, Meta>, limit: u32, rules: Vec<Rewrite<Mat
         for m in matches {
             m.apply_with_limit(egraph, limit as usize);
             if egraph.total_size() > limit as usize {
-                egraph.rebuild();
-                return;
+                running = false;
+                break;
             }
         }
 
         if size_before >= egraph.total_size() {
-            egraph.rebuild();
-            return;
+            running = false;
         }
 
         egraph.rebuild();
     }
 }
-

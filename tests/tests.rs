@@ -7,8 +7,8 @@ use log::*;
 use std::time::{Duration, Instant};
 
 use egg_math::{
-    eggmath::{Math,Meta},
-    rules::{math_rules},
+    eggmath::{Math, Meta},
+    rules::math_rules,
 };
 
 #[test]
@@ -127,8 +127,8 @@ impl CheckSimplify {
 
         let (mut egraph, root) = EGraph::<Math, Meta>::from_expr(&start_expr);
         run_rules(&mut egraph, self.iters, self.limit);
-	
-	let metadata = &egraph[root].metadata;
+
+        let metadata = &egraph[root].metadata;
         println!("Best ({}): {}", metadata.cost, metadata.best.to_sexp());
 
         if metadata.best != end_expr {
@@ -251,7 +251,6 @@ fn do_something() {
     let metadata = &egraph[root].metadata;
     let extract_time = start_time.elapsed();
 
-    
     println!("Best ({}): {}", metadata.cost, metadata.best.to_sexp());
 
     println!("Extract time: {:.4}", extract_time.as_secs_f64());

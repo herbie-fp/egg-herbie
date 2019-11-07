@@ -1,14 +1,13 @@
 use egg::{
     define_term,
-    egraph::{EClass},
+    egraph::EClass,
     expr::{Expr, Language, Name, RecExpr},
 };
 
-use num_traits::{Zero};
-use num_rational::{Ratio, BigRational};
+use num_rational::{BigRational, Ratio};
+use num_traits::Zero;
 
 pub type MathEGraph<M = Meta> = egg::egraph::EGraph<Math, M>;
-
 
 define_term! {
     #[derive(Debug, PartialEq, Eq, Hash, Clone)]
@@ -40,34 +39,34 @@ define_term! {
     pub enum Math {
         Constant(Constant),
 
-	// complex operators not from FPCore
-	Re = "re",
-	Im = "im",
-	Complex = "complex",
-	Conj = "conj",
-	Addc = "+.c",
-	Subc = "-.c",
-	Negc = "neg.c",
-	Divc = "/.c",
-	Mulc = "*.c",
+    // complex operators not from FPCore
+    Re = "re",
+    Im = "im",
+    Complex = "complex",
+    Conj = "conj",
+    Addc = "+.c",
+    Subc = "-.c",
+    Negc = "neg.c",
+    Divc = "/.c",
+    Mulc = "*.c",
 
 
-	// FPCore operations
-	Erf = "erf",
-	Erfc = "erfc",
-	Tgamma = "tgamma",
-	Lgamma = "lgamma",
-	Ceil = "ceil",
-	Floor = "floor",
-	Fmod = "fmod",
-	Remainder = "remainder",
-	Fmax = "fmax",
-	Fmin = "fmin",
-	Fdim = "fdim",
-	Copysign = "copysign",
-	Trunc = "trunc",
-	Round = "round",
-	NearbyInt = "nearbyint",
+    // FPCore operations
+    Erf = "erf",
+    Erfc = "erfc",
+    Tgamma = "tgamma",
+    Lgamma = "lgamma",
+    Ceil = "ceil",
+    Floor = "floor",
+    Fmod = "fmod",
+    Remainder = "remainder",
+    Fmax = "fmax",
+    Fmin = "fmin",
+    Fdim = "fdim",
+    Copysign = "copysign",
+    Trunc = "trunc",
+    Round = "round",
+    NearbyInt = "nearbyint",
 
 
 
@@ -77,7 +76,7 @@ define_term! {
         Div = "/",
         Pow = "pow",
         Exp = "exp",
-	Exp2 = "exp2",
+    Exp2 = "exp2",
         Log = "log",
         Sqrt = "sqrt",
         Cbrt = "cbrt",
@@ -98,8 +97,8 @@ define_term! {
 
         Fma = "fma",
         Log1p = "log1p",
-	Log10 = "log10",
-	Log2 = "log2",
+    Log10 = "log10",
+    Log2 = "log2",
         Expm1 = "expm1",
         Hypot = "hypot",
 
@@ -108,7 +107,7 @@ define_term! {
         PositMul = "*.p16",
         PositDiv = "/.p16",
         RealToPosit = "real->posit",
-	FPConstant(FPConstant),
+    FPConstant(FPConstant),
         Variable(Name),
     }
 }
@@ -221,7 +220,6 @@ impl egg::egraph::Metadata<Math> for Meta {
     }
 
     fn modify(eclass: &mut EClass<Math, Self>) {
-	
         // NOTE pruning vs not pruning is decided right here
         let best = eclass.metadata.best.as_ref();
         if best.children.is_empty() {
