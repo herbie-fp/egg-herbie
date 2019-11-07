@@ -17,7 +17,7 @@ mod rules;
 
 use std::ffi::{CStr, CString};
 use std::mem::transmute;
-use std::os::raw::{c_char, c_int};
+use std::os::raw::{c_char};
 use std::slice;
 
 unsafe fn cstring_to_recexpr(c_string: *const c_char) -> Option<RecExpr<Math>> {
@@ -94,14 +94,14 @@ pub unsafe extern "C" fn egraph_add_expr(
     Box::into_raw(Box::new(result))
 }
 
-// todo don't just unwrap
+// todo don't just unwrap, also make sure the rules are validly parsed
 unsafe fn ffirule_to_tuple(rule_ptr: *mut FFIRule) -> (String, String, String) {
     let rule = &mut *rule_ptr;
     let bytes1 = CStr::from_ptr(rule.name).to_bytes();
     let string_result1 = String::from_utf8(bytes1.to_vec()).unwrap();
-    let bytes2 = CStr::from_ptr(rule.name).to_bytes();
+    let bytes2 = CStr::from_ptr(rule.left).to_bytes();
     let string_result2 = String::from_utf8(bytes2.to_vec()).unwrap();
-    let bytes3 = CStr::from_ptr(rule.name).to_bytes();
+    let bytes3 = CStr::from_ptr(rule.right).to_bytes();
     let string_result3 = String::from_utf8(bytes3.to_vec()).unwrap();
     (string_result1, string_result2, string_result3)
 }
@@ -111,7 +111,7 @@ pub unsafe extern "C" fn egraph_run_rules(
     egraph_ptr: *mut EGraph<Math, Meta>,
     limit: u32,
     rules_array_ptr : *const *mut FFIRule,
-    rules_array_length : c_int,
+    rules_array_length : u32,
 ) {
     let length : usize = rules_array_length as usize;
     let egraph = &mut *egraph_ptr;
