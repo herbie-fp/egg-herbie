@@ -255,3 +255,20 @@ fn do_something() {
 
     println!("Extract time: {:.4}", extract_time.as_secs_f64());
 }
+
+
+
+#[test]
+fn test_eval() {
+    let exprs = vec![("(/ 4 2)", "2"),
+		     ("(/ 3 2)", "(/ 3 2)")];
+    
+    for pair in exprs.iter() {
+	CheckSimplify {
+            start: pair.0,
+            end: pair.1,
+            iters: 5,
+            limit: 1_000,
+	}.check();
+    }
+}
