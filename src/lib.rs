@@ -55,7 +55,7 @@ pub struct EGraphAddResult {
     successp: bool,
 }
 
-// a struct to report failure if the add fails
+// a struct for loading rules from external source
 #[repr(C)]
 pub struct FFIRule {
     name: *const c_char,
@@ -97,7 +97,7 @@ unsafe fn ffirule_to_tuple(rule_ptr: *mut FFIRule) -> (String, String, String) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn egraph_run_rules(
+pub unsafe extern "C" fn egraph_run_iter(
     egraph_ptr: *mut EGraph<Math, Meta>,
     limit: u32,
     rules_array_ptr: *const *mut FFIRule,
@@ -120,7 +120,7 @@ pub unsafe extern "C" fn egraph_run_rules(
 
     let rules: Vec<Rewrite<Math, Meta>> = rules::mk_rules(&ffi_tuples);
 
-    run_rules(egraph, limit, rules);
+    run_rules_once(egraph, limit, rules)
 }
 
 #[no_mangle]
@@ -138,30 +138,33 @@ pub unsafe extern "C" fn egraph_get_simplest(
     best_str_pointer
 }
 
-fn run_rules(egraph: &mut EGraph<Math, Meta>, limit: u32, rules: Vec<Rewrite<Math, Meta>>) {
-    let mut running = true;
-    while running {
-        let size_before = egraph.total_size();
-        let mut matches = Vec::new();
-        for rule in rules.iter() {
-            let ms = rule.search(&egraph);
-            if !ms.is_empty() {
-                matches.push(ms);
-            }
-        }
+#[no_mangle]
+pub unsafe extern "C" fn egraph_get_cost(egraph_ptr: *mut EGraph<Math, Meta>, node_id: u32) -> u32 {
+    let egraph = &mut *egraph_ptr;
+    let best = &egraph[node_id].metadata.cost;
+    *best as u32
+}
 
-        for m in matches {
-            m.apply_with_limit(egraph, limit as usize);
-            if egraph.total_size() > limit as usize {
-                running = false;
-                break;
-            }
-        }
+#[no_mangle]
+pub unsafe extern "C" fn egraph_get_size(egraph_ptr: *mut EGraph<Math, Meta>) -> u32 {
+    let egraph = &mut *egraph_ptr;
+    egraph.total_size() as u32
+}
 
-        if size_before >= egraph.total_size() {
-            running = false;
+fn run_rules_once(egraph: &mut EGraph<Math, Meta>, limit: u32, rules: Vec<Rewrite<Math, Meta>>) {
+    let mut matches = Vec::new();
+    for rule in rules.iter() {
+        let ms = rule.search(&egraph);
+        if !ms.is_empty() {
+            matches.push(ms);
         }
-
-        egraph.rebuild();
     }
+
+    for m in matches {
+        m.apply_with_limit(egraph, limit as usize);
+        if egraph.total_size() > limit as usize {
+            break;
+        }
+    }
+    egraph.rebuild();
 }
