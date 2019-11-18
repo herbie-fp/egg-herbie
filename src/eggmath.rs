@@ -6,6 +6,7 @@ use egg::{
 
 use num_rational::{BigRational, Ratio};
 use num_traits::{Pow, Zero};
+use num_bigint::{BigInt};
 //use num_bigint::{ToBigUint::to_biguint};
 
 pub type MathEGraph<M = Meta> = egg::egraph::EGraph<Math, M>;
@@ -40,34 +41,34 @@ define_term! {
     pub enum Math {
         Constant(Constant),
 
-    // complex operators not from FPCore
-    Re = "re",
-    Im = "im",
-    Complex = "complex",
-    Conj = "conj",
-    Addc = "+.c",
-    Subc = "-.c",
-    Negc = "neg.c",
-    Divc = "/.c",
-    Mulc = "*.c",
+	// complex operators not from FPCore
+	Re = "re",
+	Im = "im",
+	Complex = "complex",
+	Conj = "conj",
+	Addc = "+.c",
+	Subc = "-.c",
+	Negc = "neg.c",
+	Divc = "/.c",
+	Mulc = "*.c",
 
 
-    // FPCore operations
-    Erf = "erf",
-    Erfc = "erfc",
-    Tgamma = "tgamma",
-    Lgamma = "lgamma",
-    Ceil = "ceil",
-    Floor = "floor",
-    Fmod = "fmod",
-    Remainder = "remainder",
-    Fmax = "fmax",
-    Fmin = "fmin",
-    Fdim = "fdim",
-    Copysign = "copysign",
-    Trunc = "trunc",
-    Round = "round",
-    NearbyInt = "nearbyint",
+	// FPCore operations
+	Erf = "erf",
+	Erfc = "erfc",
+	Tgamma = "tgamma",
+	Lgamma = "lgamma",
+	Ceil = "ceil",
+	Floor = "floor",
+	Fmod = "fmod",
+	Remainder = "remainder",
+	Fmax = "fmax",
+	Fmin = "fmin",
+	Fdim = "fdim",
+	Copysign = "copysign",
+	Trunc = "trunc",
+	Round = "round",
+	NearbyInt = "nearbyint",
 
 
 
@@ -77,7 +78,7 @@ define_term! {
         Div = "/",
         Pow = "pow",
         Exp = "exp",
-    Exp2 = "exp2",
+	Exp2 = "exp2",
         Log = "log",
         Sqrt = "sqrt",
         Cbrt = "cbrt",
@@ -98,8 +99,8 @@ define_term! {
 
         Fma = "fma",
         Log1p = "log1p",
-    Log10 = "log10",
-    Log2 = "log2",
+	Log10 = "log10",
+	Log2 = "log2",
         Expm1 = "expm1",
         Hypot = "hypot",
 
@@ -108,7 +109,7 @@ define_term! {
         PositMul = "*.p16",
         PositDiv = "/.p16",
         RealToPosit = "real->posit",
-    FPConstant(FPConstant),
+	FPConstant(FPConstant),
         Variable(Name),
     }
 }
@@ -162,19 +163,6 @@ fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
                 None
             }
         }
-        // Math::Cbrt => {
-        //     if let Some(cbrt) = args[0].to_f64().map(f64::cbrt) {
-        //         #[allow(clippy::float_cmp)]
-        //         let is_int = cbrt == cbrt.trunc();
-        //         if is_int {
-        //             cbrt.into()
-        //         } else {
-        //             None
-        //         }
-        //     } else {
-        //         None
-        //     }
-        // }
         Math::Fabs => {
             if a(0)? < Ratio::from_integer(Zero::zero()) {
                 Some(-a(0)?)
@@ -182,6 +170,23 @@ fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
                 Some(a(0)?)
             }
         }
+	Math::Sin => {
+	    if a(0)?.is_zero() {
+		Some(a(0)?)
+	    } else {
+		None
+	    }
+	}
+	Math::Cos => {
+	    if a(1)?.is_integer() && a(0)?.numer() == &BigInt::from(1) {
+		Some(Ratio::from_integer(Zero::zero()))
+	    } else {
+		None
+	    }
+	}
+	Math::Floor => Some(a(0)?.floor()),
+	Math::Ceil => Some(a(0)?.ceil()),
+	Math::Round => Some(a(0)?.round()),
         Math::RealToPosit => Some(a(0)?),
         _ => None,
     }
