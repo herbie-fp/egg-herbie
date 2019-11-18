@@ -144,6 +144,30 @@ impl CheckSimplify {
     }
 }
 
+struct CheckEval {
+    start: &'static str,
+    end: &'static str,
+}
+
+impl CheckEval {
+    fn check(self) {
+        let start_expr = Math::parse_expr(self.start).unwrap();
+        let end_expr = Math::parse_expr(self.end).unwrap();
+        let (egraph, root) = EGraph::<Math, Meta>::from_expr(&start_expr);
+        let metadata = &egraph[root].metadata;
+        println!("Best ({}): {}", metadata.cost, metadata.best.to_sexp());
+        if metadata.best != end_expr {
+            println!("start: {}", start_expr.to_sexp());
+            println!("start: {:?}", start_expr);
+            panic!("Could not simplify {} to {}", self.start, self.end);
+        }
+        // make sure that pattern search also works
+        let pattern = Pattern::from_expr(&end_expr);
+        let matches = pattern.search_eclass(&egraph, root).unwrap();
+        assert!(!matches.mappings.is_empty());
+    }
+}
+
 #[test]
 #[should_panic(expected = "Could not simplify")]
 fn does_not_simplify() {
@@ -256,19 +280,21 @@ fn do_something() {
     println!("Extract time: {:.4}", extract_time.as_secs_f64());
 }
 
-
-
 #[test]
 fn test_eval() {
-    let exprs = vec![("(/ 4 2)", "2"),
-		     ("(/ 3 2)", "(/ 3 2)")];
-    
+    let exprs = vec![
+        ("(/ 4 2)", "2"),
+        ("(/ 3 (/ 2 1))", "3/2"),
+        ("(/ 4 (/ 4 2))", "2"),
+        ("(pow 5 2)", "25"),
+        ("(pow 5 (/ 2 3))", "(pow 5 2/3)"),
+    ];
+
     for pair in exprs.iter() {
-	CheckSimplify {
+        CheckEval {
             start: pair.0,
             end: pair.1,
-            iters: 5,
-            limit: 1_000,
-	}.check();
+        }
+        .check();
     }
 }

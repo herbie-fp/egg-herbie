@@ -5,7 +5,7 @@ use egg::{
 };
 
 use num_rational::{BigRational, Ratio};
-use num_traits::{Zero, Pow};
+use num_traits::{Pow, Zero};
 //use num_bigint::{ToBigUint::to_biguint};
 
 pub type MathEGraph<M = Meta> = egg::egraph::EGraph<Math, M>;
@@ -144,23 +144,23 @@ fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
             }
         }
         Math::Pow => {
-	    if a(1)?.is_integer() {
-		let exponent = a(1)?.numer().to_biguint()?;
-		let newTop = Pow::pow(a(0)?.numer(), &exponent);
-		let newBot = Pow::pow(a(0)?.denom(), &exponent);
-		Some(Ratio::new(newTop, newBot))
-	    } else {
-		None
-	    }
-	}
+            if a(1)?.is_integer() {
+                let exponent = a(1)?.numer().to_biguint()?;
+                let new_top = Pow::pow(a(0)?.numer(), &exponent);
+                let new_bot = Pow::pow(a(0)?.denom(), &exponent);
+                Some(Ratio::new(new_top, new_bot))
+            } else {
+                None
+            }
+        }
         Math::Sqrt => {
-	    let s1 = a(0)?.numer().sqrt();
-	    let s2 = a(0)?.denom().sqrt();
-	    if(&(&s1*&s1) == a(0)?.numer() && &(&s2*&s2) == a(1)?.denom()) {
-		Some(Ratio::new(s1, s2))
-	    } else {
-		None
-	    }
+            let s1 = a(0)?.numer().sqrt();
+            let s2 = a(0)?.denom().sqrt();
+            if &(&s1 * &s1) == a(0)?.numer() && &(&s2 * &s2) == a(1)?.denom() {
+                Some(Ratio::new(s1, s2))
+            } else {
+                None
+            }
         }
         // Math::Cbrt => {
         //     if let Some(cbrt) = args[0].to_f64().map(f64::cbrt) {
