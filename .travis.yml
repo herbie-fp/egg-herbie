@@ -17,8 +17,6 @@ before_script:
   
 script:
   - make
-  - rm .gitignore # remove gitignore so deployment gets target folder
-  - rm .travis.yml # remove travis for deployed branches
 
 deploy:
   provider: script
