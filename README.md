@@ -1,6 +1,6 @@
 # An ffi interface to mwillsey/egg for use in herbie
 
-[![Build Status](https://travis-ci.com/oflatt/egg-herbie.svg?branch=master)](https://travis-ci.com/oflatt/egg-herbie)
+[![Build Status](https://travis-ci.org/oflatt/egg-herbie.svg?branch=master)](https://travis-ci.org/oflatt/egg-herbie)
 
 
 ## Developing
