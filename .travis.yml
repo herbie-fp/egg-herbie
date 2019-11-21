@@ -8,4 +8,11 @@ before_script:
   - rustup target add wasm32-unknown-unknown
   - cargo install cargo-deadlinks || echo "cargo-deadlinks already installed"
   - cargo install cargo-web || echo "cargo-web already installed"
-script: make
+script: make  
+
+deploy:
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  keep_history: true
+  on:
+    branch: egg-herbie-deploy-$(TRAVIS_OS_NAME)
