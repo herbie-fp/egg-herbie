@@ -115,19 +115,19 @@ define_term! {
 }
 
 impl Language for Math {
-    fn cost(&self, children: &[u64]) -> u64 {
+    fn cost(&self, children: &[f64]) -> f64 {
         let cost = match self {
-            Math::Constant(_) | Math::Variable(_) | Math::FPConstant(_) => 0,
-            _ => 1,
+            Math::Constant(_) | Math::Variable(_) | Math::FPConstant(_) => 0.0,
+            _ => 1.0,
         };
 
-        cost + children.iter().sum::<u64>()
+        cost + children.iter().sum::<f64>()
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Meta {
-    pub cost: u64,
+    pub cost: f64,
     pub best: RecExpr<Math>,
 }
 
