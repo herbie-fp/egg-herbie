@@ -18,9 +18,9 @@ before_script:
 script:
   - make
   - rm .gitignore # remove gitignore so deployment gets target folder
+  - rm .travis.yml # remove travis for deployed branches
 
 deploy:
-  provider: pages
   skip_cleanup: true
   github_token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
   keep_history: true
