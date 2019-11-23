@@ -17,6 +17,7 @@ before_script:
   
 script:
   - make
+  - cargo build --release
 
 deploy:
   provider: script
