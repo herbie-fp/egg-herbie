@@ -17,8 +17,9 @@ upload_files() {
     git remote add origin-pages https://${GITHUB_TOKEN}@github.com/oflatt/egg-herbie > /dev/null 2>&1
     git fetch origin-pages egg-herbie-deploy-$TRAVIS_OS_NAME
     git checkout egg-herbie-deploy-$TRAVIS_OS_NAME
-    git merge egg-herbie-deploy-$TRAVIS_OS_NAME-temp -X theirs
-    git push --quiet --set-upstream origin-pages egg-herbie-deploy-$TRAVIS_OS_NAME
+    git merge -s theirs egg-herbie-deploy-$TRAVIS_OS_NAME-temp
+    git commit
+    git push egg-herbie-deploy-$TRAVIS_OS_NAME
 }
 
 setup_git
