@@ -4,7 +4,7 @@ extern crate lazy_static;
 pub mod eggmath;
 pub mod rules;
 
-use crate::eggmath::{Math, Meta, set_constant_folding};
+use crate::eggmath::{set_constant_folding, Math, Meta};
 
 use egg::{egraph::EGraph, expr::RecExpr, parse::ParsableLanguage, pattern::Rewrite};
 
