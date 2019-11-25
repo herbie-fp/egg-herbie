@@ -6,8 +6,8 @@ setup_git() {
 }
 
 commit_website_files() {
-    git checkout -b egg-herbie-deploy-$TRAVIS_OS_NAME
-    rm .travis.yml
+    git checkout -b egg-herbie-deploy-$TRAVIS_OS_NAME-temp
+    git add -u
     git add target/release/* -f
     git add .travis.yml
     git commit --message "Travis build: $TRAVIS_BUILD_NUMBER"
@@ -15,7 +15,10 @@ commit_website_files() {
 
 upload_files() {
     git remote add origin-pages https://${GITHUB_TOKEN}@github.com/oflatt/egg-herbie > /dev/null 2>&1
-    git push -f --quiet --set-upstream origin-pages egg-herbie-deploy-$TRAVIS_OS_NAME
+    git fetch origin-pages egg-herbie-deploy-$TRAVIS_OS_NAME
+    git checkout egg-herbie-deploy-$TRAVIS_OS_NAME
+    git merge egg-herbie-deploy-$TRAVIS_OS_NAME-temp -X theirs
+    git push --quiet --set-upstream origin-pages egg-herbie-deploy-$TRAVIS_OS_NAME
 }
 
 setup_git

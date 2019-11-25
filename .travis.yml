@@ -1,3 +1,9 @@
+# blocklist
+branches:
+  except:
+  - egg-herbie-deploy*
+  - experimental
+
 os:
   - linux
   - osx
