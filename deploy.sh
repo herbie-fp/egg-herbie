@@ -7,9 +7,8 @@ setup_git() {
 
 commit_website_files() {
     git checkout -b egg-herbie-deploy-$TRAVIS_OS_NAME
-    rm .gitignore
     rm .travis.yml
-    git add --all
+    git add target/release/egg_math* -f
     git commit --message "Travis build: $TRAVIS_BUILD_NUMBER"
 }
 

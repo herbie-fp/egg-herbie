@@ -1,8 +1,10 @@
 extern crate libc;
+#[macro_use]
+extern crate lazy_static;
 pub mod eggmath;
 pub mod rules;
 
-use crate::eggmath::{Math, Meta};
+use crate::eggmath::{Math, Meta, set_constant_folding};
 
 use egg::{egraph::EGraph, expr::RecExpr, parse::ParsableLanguage, pattern::Rewrite};
 
@@ -101,8 +103,11 @@ pub unsafe extern "C" fn egraph_run_iter(
     egraph_ptr: *mut EGraph<Math, Meta>,
     limit: u32,
     rules_array_ptr: *const *mut FFIRule,
+    is_constant_folding_enabled: bool,
     rules_array_length: u32,
 ) {
+    set_constant_folding(is_constant_folding_enabled);
+
     let length: usize = rules_array_length as usize;
     let egraph = &mut *egraph_ptr;
 

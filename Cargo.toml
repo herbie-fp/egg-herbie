@@ -9,6 +9,7 @@ egg = { git = "https://github.com/mwillsey/egg" }
 log = "0.4"
 indexmap = "1.1"
 libc = "0.2.0"
+lazy_static = "1.4.0"
 
 
 num-rational = "0.2.2"

@@ -4,12 +4,24 @@ use egg::{
     expr::{Expr, Language, Name, RecExpr},
 };
 
+use std::sync::Mutex;
+
 use num_bigint::BigInt;
 use num_rational::{BigRational, Ratio};
 use num_traits::{Pow, Zero};
 //use num_bigint::{ToBigUint::to_biguint};
 
 pub type MathEGraph<M = Meta> = egg::egraph::EGraph<Math, M>;
+
+
+lazy_static! {
+    static ref IS_CONSTANT_FOLDING_ENABLED: Mutex<bool> = Mutex::new(true);
+}
+
+pub fn set_constant_folding(flag: bool) {
+    *IS_CONSTANT_FOLDING_ENABLED.lock().unwrap() = flag;
+}
+
 
 define_term! {
     #[derive(Debug, PartialEq, Eq, Hash, Clone)]
@@ -203,21 +215,24 @@ impl egg::egraph::Metadata<Math> for Meta {
     }
 
     fn make(expr: Expr<Math, &Self>) -> Self {
-        let expr = {
-            let const_args: Option<Vec<Constant>> = expr
-                .children
-                .iter()
-                .map(|meta| match meta.best.as_ref().op {
-                    Math::Constant(ref c) => Some(c.clone()),
-                    _ => None,
-                })
-                .collect();
+        let expr =
+	    if !*IS_CONSTANT_FOLDING_ENABLED.lock().unwrap() {
+		expr
+	    } else {
+		let const_args: Option<Vec<Constant>> = expr
+                    .children
+                    .iter()
+                    .map(|meta| match meta.best.as_ref().op {
+			Math::Constant(ref c) => Some(c.clone()),
+			_ => None,
+                    })
+                    .collect();
 
-            const_args
-                .and_then(|a| eval(expr.op.clone(), &a))
-                .map(|c| Expr::unit(Math::Constant(c)))
-                .unwrap_or(expr)
-        };
+		const_args
+                    .and_then(|a| eval(expr.op.clone(), &a))
+                    .map(|c| Expr::unit(Math::Constant(c)))
+                    .unwrap_or(expr)
+            };
 
         let best: RecExpr<_> = expr.map_children(|c| c.best.clone()).into();
         Self {
