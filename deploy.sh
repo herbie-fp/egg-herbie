@@ -6,7 +6,7 @@ setup_git() {
 }
 
 commit_website_files() {
-    git checkout -b egg-herbie-deploy-$TRAVIS_OS_NAME-temp
+    git checkout -b egg-herbie-deploy-$TRAVIS_OS_NAME
     git add -u
     git add target/release/* -f
     git add .travis.yml
@@ -15,14 +15,10 @@ commit_website_files() {
 
 upload_files() {
     git remote add origin-pages https://${GITHUB_TOKEN}@github.com/oflatt/egg-herbie > /dev/null 2>&1
-    git fetch origin-pages egg-herbie-deploy-$TRAVIS_OS_NAME
-    git checkout egg-herbie-deploy-$TRAVIS_OS_NAME
-    git merge -X theirs egg-herbie-deploy-$TRAVIS_OS_NAME-temp
-    git diff --name-only --diff-filter=U | xargs git rm
-    git commit
-    git push egg-herbie-deploy-$TRAVIS_OS_NAME
+    git push -f --set-upstream origin-pages egg-herbie-deploy-$TRAVIS_OS_NAME
 }
 
 setup_git
 commit_website_files
 upload_files
+
