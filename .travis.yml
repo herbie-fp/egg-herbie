@@ -1,8 +1,9 @@
 # blocklist
 branches:
   except:
-  - egg-herbie-deploy*
-  - experimental
+  - egg-herbie-deploy-osx
+  - egg-herbie-deploy-windows
+  - egg-herbie-deploy-linux
 
 os:
   - linux
