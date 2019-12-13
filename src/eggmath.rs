@@ -167,7 +167,8 @@ fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
         Math::Sqrt => {
             let s1 = a(0)?.numer().sqrt();
             let s2 = a(0)?.denom().sqrt();
-            if &(&s1 * &s1) == a(0)?.numer() && &(&s2 * &s2) == a(1)?.denom() {
+            let is_perfect = &(&s1 * &s1) == a(0)?.numer() && &(&s2 * &s2) == a(1)?.denom();
+            if a(0)? > Ratio::from_integer(Zero::zero()) && is_perfect {
                 Some(Ratio::new(s1, s2))
             } else {
                 None
