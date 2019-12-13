@@ -17,7 +17,6 @@ cache: cargo
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install make          ; fi
-  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install rsync          ; fi
 
 before_script:
   - rustup component add rustfmt
@@ -28,11 +27,9 @@ script:
   - cargo build --release
 
 deploy:
-  provider: pages
-  github_token: $GITHUB_TOKEN
-  keep_history: true
+  provider: script
+  script: bash ./deploy.sh
   skip_cleanup: true
-  target_branch: egg-herbie-deploy-$TRAVIS_OS_NAME
   on:
     branch: master
 
