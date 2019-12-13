@@ -27,9 +27,11 @@ script:
   - cargo build --release
 
 deploy:
-  provider: script
-  script: bash ./deploy.sh
+  provider: pages
+  github_token: $GITHUB_TOKEN
+  keep_history: true
   skip_cleanup: true
+  target_branch: egg-herbie-deploy-$TRAVIS_OS_NAME
   on:
     branch: master
 
