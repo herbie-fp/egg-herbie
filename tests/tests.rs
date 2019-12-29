@@ -288,6 +288,7 @@ fn test_eval() {
         ("(/ 4 (/ 4 2))", "2"),
         ("(pow 5 2)", "25"),
         ("(pow 5 (/ 2 3))", "(pow 5 2/3)"),
+        ("(cos PI)", "-1"),
     ];
 
     for pair in exprs.iter() {

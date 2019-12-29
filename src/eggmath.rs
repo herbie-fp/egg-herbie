@@ -9,7 +9,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use num_bigint::BigInt;
 use num_rational::{BigRational, Ratio};
 use num_traits::{Pow, Zero};
-//use num_bigint::{ToBigUint::to_biguint};
 
 pub type MathEGraph<M = Meta> = egg::egraph::EGraph<Math, M>;
 
@@ -141,6 +140,20 @@ pub struct Meta {
     pub best: RecExpr<Math>,
 }
 
+fn eval_const(op: Math, args: &[Math]) -> Option<Math> {
+    let a = |i| args.get(i).cloned();
+    match op {
+        Math::Cos => {
+            if a(0)? == Math::FPConstant(FPConstant::Pi) {
+                Some(Math::Constant(Ratio::from_integer(BigInt::from(-1))))
+            } else {
+                None
+            }
+        }
+        _ => None,
+    }
+}
+
 fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
     let a = |i| args.get(i).cloned();
     match op {
@@ -230,10 +243,20 @@ impl egg::egraph::Metadata<Math> for Meta {
                 })
                 .collect();
 
-            const_args
+            let math_args: Vec<Math> = expr
+                .children
+                .iter()
+                .map(|meta| meta.best.as_ref().op.clone())
+                .collect();
+
+            let eval_const_result = eval_const(expr.op.clone(), &math_args).map(Expr::unit);
+
+            let eval_result = const_args
                 .and_then(|a| eval(expr.op.clone(), &a))
                 .map(|c| Expr::unit(Math::Constant(c)))
-                .unwrap_or(expr)
+                .unwrap_or(expr);
+
+            eval_const_result.unwrap_or(eval_result)
         };
 
         let best: RecExpr<_> = expr.map_children(|c| c.best.clone()).into();
