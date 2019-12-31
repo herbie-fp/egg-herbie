@@ -1,3 +1,4 @@
+#![allow(clippy::cognitive_complexity)]
 use egg::{
     define_term,
     egraph::EClass,
@@ -140,6 +141,7 @@ pub struct Meta {
     pub best: RecExpr<Math>,
 }
 
+/*
 fn eval_const(op: Math, args: &[Math]) -> Option<Math> {
     let a = |i| args.get(i).cloned();
     match op {
@@ -152,19 +154,26 @@ fn eval_const(op: Math, args: &[Math]) -> Option<Math> {
         }
         _ => None,
     }
-}
+}*/
 
-fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
-    let a = |i| args.get(i).cloned();
+fn eval(op: Math, args: &[Math]) -> Option<Math> {
+    let a = |i| match args.get(i)? {
+        Math::Constant(ref c) => Some(c.clone()),
+        _ => None,
+    };
+
+    let math = |i: usize| -> Option<Math> { args.get(i).cloned() };
+    let result = |i: Constant| -> Option<Math> { Some(Math::Constant(i)) };
+
     match op {
-        Math::Add => Some(a(0)? + a(1)?),
-        Math::Sub => Some(a(0)? - a(1)?),
-        Math::Mul => Some(a(0)? * a(1)?),
+        Math::Add => result(a(0)? + a(1)?),
+        Math::Sub => result(a(0)? - a(1)?),
+        Math::Mul => result(a(0)? * a(1)?),
         Math::Div => {
             if a(1)?.is_zero() {
                 None
             } else {
-                Some(a(0)? / a(1)?)
+                result(a(0)? / a(1)?)
             }
         }
         Math::Pow => {
@@ -172,7 +181,7 @@ fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
                 let exponent = a(1)?.numer().to_biguint()?;
                 let new_top = Pow::pow(a(0)?.numer(), &exponent);
                 let new_bot = Pow::pow(a(0)?.denom(), &exponent);
-                Some(Ratio::new(new_top, new_bot))
+                result(Ratio::new(new_top, new_bot))
             } else {
                 None
             }
@@ -183,7 +192,7 @@ fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
                 let s2 = a(0)?.denom().sqrt();
                 let is_perfect = &(&s1 * &s1) == a(0)?.numer() && &(&s2 * &s2) == a(1)?.denom();
                 if is_perfect {
-                    Some(Ratio::new(s1, s2))
+                    result(Ratio::new(s1, s2))
                 } else {
                     None
                 }
@@ -193,29 +202,31 @@ fn eval(op: Math, args: &[Constant]) -> Option<Constant> {
         }
         Math::Fabs => {
             if a(0)? < Ratio::from_integer(Zero::zero()) {
-                Some(-a(0)?)
+                result(-a(0)?)
             } else {
-                Some(a(0)?)
+                result(a(0)?)
             }
         }
         Math::Sin => {
             if a(0)?.is_zero() {
-                Some(a(0)?)
+                result(a(0)?)
             } else {
                 None
             }
         }
         Math::Cos => {
-            if a(1)?.is_integer() && a(0)?.numer() == &BigInt::from(1) {
-                Some(Ratio::from_integer(Zero::zero()))
+            if math(0)? == Math::FPConstant(FPConstant::Pi) {
+                result(Ratio::from_integer(BigInt::from(-1)))
+            } else if a(1)?.is_integer() && a(0)?.numer() == &BigInt::from(1) {
+                result(Ratio::from_integer(Zero::zero()))
             } else {
                 None
             }
         }
-        Math::Floor => Some(a(0)?.floor()),
-        Math::Ceil => Some(a(0)?.ceil()),
-        Math::Round => Some(a(0)?.round()),
-        Math::RealToPosit => Some(a(0)?),
+        Math::Floor => result(a(0)?.floor()),
+        Math::Ceil => result(a(0)?.ceil()),
+        Math::Round => result(a(0)?.round()),
+        Math::RealToPosit => result(a(0)?),
         _ => None,
     }
 }
@@ -234,29 +245,14 @@ impl egg::egraph::Metadata<Math> for Meta {
         let expr = if !IS_CONSTANT_FOLDING_ENABLED.load(Ordering::Relaxed) {
             expr
         } else {
-            let const_args: Option<Vec<Constant>> = expr
-                .children
-                .iter()
-                .map(|meta| match meta.best.as_ref().op {
-                    Math::Constant(ref c) => Some(c.clone()),
-                    _ => None,
-                })
-                .collect();
-
             let math_args: Vec<Math> = expr
                 .children
                 .iter()
                 .map(|meta| meta.best.as_ref().op.clone())
                 .collect();
 
-            let eval_const_result = eval_const(expr.op.clone(), &math_args).map(Expr::unit);
-
-            let eval_result = const_args
-                .and_then(|a| eval(expr.op.clone(), &a))
-                .map(|c| Expr::unit(Math::Constant(c)))
-                .unwrap_or(expr);
-
-            eval_const_result.unwrap_or(eval_result)
+            let eval_result = eval(expr.op.clone(), &math_args).map(Expr::unit);
+            eval_result.unwrap_or(expr)
         };
 
         let best: RecExpr<_> = expr.map_children(|c| c.best.clone()).into();
