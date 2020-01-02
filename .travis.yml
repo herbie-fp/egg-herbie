@@ -25,6 +25,7 @@ before_script:
 script:
   - make
   - cargo build --release
+  - raco test ./
 
 deploy:
   provider: script
