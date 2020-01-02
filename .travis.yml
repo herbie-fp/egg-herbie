@@ -23,11 +23,12 @@ env:
 
 before_install:
   - git clone https://github.com/greghendershott/travis-racket.git ../travis-racket
-  - cat ../travis-racket/install-racket.sh | bash
-  - export PATH="${RACKET_DIR}/bin:${PATH}"
+  - if [ "$TRAVIS_OS_NAME" != "windows" ]; then cat ../travis-racket/install-racket.sh | bash          ; fi
+  - if [ "$TRAVIS_OS_NAME" != "windows" ]; then export PATH="${RACKET_DIR}/bin:${PATH}"          ; fi
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install make          ; fi
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install racket          ; fi
 
 before_script:
   - rustup component add rustfmt
