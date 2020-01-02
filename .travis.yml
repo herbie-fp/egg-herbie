@@ -21,14 +21,14 @@ env:
   matrix:
     - RACKET_VERSION="7.3" JOB="${STABILITY}"
 
+# install racket for testing on linux
 before_install:
   - git clone https://github.com/greghendershott/travis-racket.git ../travis-racket
-  - if [ "$TRAVIS_OS_NAME" != "windows" ]; then cat ../travis-racket/install-racket.sh | bash          ; fi
-  - if [ "$TRAVIS_OS_NAME" != "windows" ]; then export PATH="${RACKET_DIR}/bin:${PATH}"          ; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cat ../travis-racket/install-racket.sh | bash          ; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export PATH="${RACKET_DIR}/bin:${PATH}"          ; fi
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install make          ; fi
-  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install racket          ; fi
 
 before_script:
   - rustup component add rustfmt
@@ -37,7 +37,7 @@ before_script:
 script:
   - make
   - cargo build --release
-  - raco test ./
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then raco test ./          ; fi
 
 deploy:
   provider: script
