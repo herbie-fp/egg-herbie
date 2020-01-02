@@ -1,57 +1,179 @@
 #lang racket
 
-(require ffi/unsafe
-         ffi/unsafe/define)
-(require racket/runtime-path)
+(require ffi/unsafe ffi/unsafe/define racket/runtime-path)
 
-(provide egraph_create egraph_destroy egraph_add_expr
-         egraph_addresult_destroy egraph_run_iter egraph_get_simplest
-         egraph_get_cost egraph_get_size (struct-out EGraphAddResult)
-         (struct-out FFIRule))
+(require "./to-egg-pattern.rkt" "./egg-interface.rkt")
+
+(module+ test (require rackunit))
+
+(provide egraph-run egraph-add-exprs egraph-run-iter
+         egraph-get-simplest egg-expr->expr egg-add-exn?
+         make-ffi-rules egraph-get-cost egraph-get-size)
+
+;; the first hash table maps all symbols and non-integer values to new names for egg
+;; the second hash is the reverse of the first
+(struct egraph-data (egraph-pointer egg->herbie-dict herbie->egg-dict))
+;; interface struct for accepting rules
+(struct irule (name input output) #:prefab)
+
+(define (egraph-get-size egraph-data)
+  (egraph_get_size (egraph-data-egraph-pointer egraph-data)))
+
+(define (egraph-get-cost egraph-data node-id)
+  (egraph_get_cost (egraph-data-egraph-pointer egraph-data) node-id))
+
+(define (egraph-get-simplest egraph-data node-id)
+  (egraph_get_simplest (egraph-data-egraph-pointer egraph-data) node-id))
+
+(define (make-ffi-rules rules)
+  (for/list [(rule rules)]
+      (make-FFIRule (symbol->string (irule-name rule))
+                    (to-egg-pattern (irule-input rule))
+                    (to-egg-pattern (irule-output rule)))))
+
+(define (egraph-run-iter egraph-data node-limit ffi-rules precompute?)
+  (egraph_run_iter (egraph-data-egraph-pointer egraph-data) node-limit ffi-rules precompute?))
+
+(define (run-rules-recursive egraph-data node-limit ffi-rules precompute? last-count)
+  (egraph_run_iter (egraph-data-egraph-pointer egraph-data) node-limit ffi-rules precompute?)
+  (define cnt (egraph_get_size (egraph-data-egraph-pointer egraph-data)))
+  (if (and (< cnt node-limit) (> cnt last-count))
+      (run-rules-recursive egraph-data node-limit ffi-rules precompute? cnt)
+      (void)))
+
+(define (egraph-run-rules egraph-data node-limit rules precompute?)
+  (run-rules-recursive egraph-data node-limit (make-ffi-rules rules) precompute? 0))
 
 
-(define-runtime-path libeggmath-path
-  (build-path "target" "release"
-              (case (system-type)
-                [(windows) "egg_math"]
-                [else "libegg_math"])))
+;; calls the function on a new egraph, and cleans up
+(define (egraph-run egraph-function)
+  (define egraph (egraph-data (egraph_create) (make-hash) (make-hash)))
+  (define res (egraph-function egraph))
+  (egraph_destroy (egraph-data-egraph-pointer egraph))
+  res)
+
+(define (egg-expr->expr expr eg-data)
+  (define parsed (read (open-input-string expr)))
+  (egg-parsed->expr parsed (egraph-data-egg->herbie-dict eg-data)))
+
+(define (egg-parsed->expr parsed rename-dict)
+  (match parsed
+    [(list first-parsed rest-parsed ...)
+     (cons
+      first-parsed
+      (for/list ([expr rest-parsed])
+        (egg-parsed->expr expr rename-dict)))]
+    [(or (? number?) (? constant?))
+     parsed]
+    [else
+     (hash-ref rename-dict parsed)]))
+
+;; returns a pair of the string representing an egg expr, and updates the hash tables in the egraph
+(define (expr->egg-expr expr egg-data)
+  (define egg->herbie-dict (egraph-data-egg->herbie-dict egg-data))
+  (define herbie->egg-dict (egraph-data-herbie->egg-dict egg-data))
+  (expr->egg-expr-helper expr egg->herbie-dict herbie->egg-dict))
+
+(define (expr->egg-expr-helper expr egg->herbie-dict herbie->egg-dict)
+  (cond
+    [(list? expr)
+     (string-join
+      (cons
+       (symbol->string (first expr))
+       (map (lambda (e) (expr->egg-expr-helper e egg->herbie-dict herbie->egg-dict))
+            (rest expr)))
+      " "
+      #:before-first "("
+      #:after-last ")")]
+    [(and (number? expr) (exact? expr) (real? expr))
+     (number->string expr)]
+    [(constant? expr)
+     (symbol->string expr)]
+    [(hash-has-key? herbie->egg-dict expr)
+     (symbol->string (hash-ref herbie->egg-dict expr))]
+    [else
+     (define new-key (format "h~a" (number->string (hash-count herbie->egg-dict))))
+     (define new-key-symbol (string->symbol new-key))
+         
+     (hash-set! herbie->egg-dict
+                expr
+                new-key-symbol)
+     (hash-set! egg->herbie-dict
+                new-key-symbol
+                expr)
+      new-key]))
 
 
-(define-ffi-definer define-eggmath (ffi-lib libeggmath-path))
+(struct egg-add-exn exn:fail ())
 
-(define _egraph-pointer (_cpointer 'egraph))
+;; result function is a function that takes the ids of the nodes
+;; egraph-add-exprs returns the result of result-function
+(define (egraph-add-exprs eg-data exprs result-function)
+  (define egg-exprs
+    (map
+     (lambda (expr) (expr->egg-expr expr eg-data))
+     exprs))
+    
+  #;
+  (debug #:from 'simplify (format "Sending expressions to egg_math:\n ~a"
+                                  (string-join egg-exprs "\n ")))
+      
+  (define expr-results
+    (map
+     (lambda (expr)
+       (egraph_add_expr (egraph-data-egraph-pointer eg-data) expr))
+     egg-exprs))
+  
+  (define node-ids
+    (for/list ([result expr-results])
+      (if (EGraphAddResult-successp result)
+          (EGraphAddResult-id result)
+          (raise (egg-add-exn
+               (string-append "Failed to add expr to egraph")
+               (current-continuation-marks))))))
 
-(define-cstruct _EGraphAddResult
-  ([id _uint]
-   [successp _bool]))
+  (define res (result-function node-ids))
 
-(define-cstruct _FFIRule
-  ([name _string/utf-8]
-   [left _string/utf-8]
-   [right _string/utf-8]))
+  (for/list ([result expr-results])
+    (egraph_addresult_destroy result))
+
+  res)
 
 
-;;  -> a pointer to an egraph
-(define-eggmath egraph_create (_fun -> _egraph-pointer))
+(module+ test
 
-(define-eggmath egraph_destroy (_fun _egraph-pointer -> _void))
+  (define test-exprs
+    (list (cons '(+ y x) "(+ h0 h1)")
+          (cons '(+ x y) "(+ h1 h0)")
+          (cons '(- 2 (+ x y)) "(- 2 (+ h1 h0))")
+          (cons '(- z (+ (+ y 2) x)) "(- h2 (+ (+ h0 2) h1))")))
+  
+  (define outputs
+   (egraph-run
+    (lambda (egg-graph)
+      (for/list ([expr-pair test-exprs])
+        (expr->egg-expr (car expr-pair) egg-graph)))))
+  
+  (for ([expr-pair test-exprs]
+        [output outputs])
+    (check-equal? (cdr expr-pair) output))
+    
+  
+  (define extended-expr-list
+    (list
+     '(/ (- (exp x) (exp (- x))) 2)
+     '(/ (+ (- b) (sqrt (- (* b b) (* (* 3 a) c)))) (* 3 a))
+     '(/ (+ (- b) (sqrt (- (* b b) (* (* 3 a) c)))) (* 3 a)) ;; duplicated to make sure it would still work
+     '(* r 30)
+     '(* 23/54 r)
+     '(+ 3/2 1.4)))
 
-;; egraph pointer, s-expr string -> node number
-(define-eggmath egraph_add_expr (_fun _egraph-pointer _string/utf-8 -> _EGraphAddResult-pointer))
-
-(define-eggmath egraph_addresult_destroy (_fun _EGraphAddResult-pointer -> _void))
-
-
-;; egraph pointer, a node limit, a pointer to an array of ffirule, a bool for constant folding, and the size of the ffirule array
-(define-eggmath egraph_run_iter (_fun _egraph-pointer
-                                      _uint
-                                      (ffi-rules : (_list i _FFIRule-pointer))
-                                      _bool
-                                      (_uint = (length ffi-rules))
-                                      -> _void))
-
-;; node number -> s-expr string
-(define-eggmath egraph_get_simplest (_fun _egraph-pointer _uint -> _string/utf-8))
-
-(define-eggmath egraph_get_cost (_fun _egraph-pointer _uint -> _uint))
-(define-eggmath egraph_get_size (_fun _egraph-pointer -> _uint))
+  (define extended-results
+   (egraph-run
+    (lambda (egg-graph)
+      (for/list ([expr
+                  extended-expr-list])
+        (egg-expr->expr (expr->egg-expr expr egg-graph) egg-graph)))))
+  (for ([res extended-results] [expected extended-expr-list])
+    (check-equal? res expected))
+  )
