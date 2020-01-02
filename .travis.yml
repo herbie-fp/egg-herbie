@@ -15,6 +15,17 @@ rust:
   - 1.38.0
 cache: cargo
 
+env:
+  global:
+    - RACKET_DIR=~/racket
+  matrix:
+    - RACKET_VERSION="7.3" JOB="${STABILITY}"
+
+before_install:
+  - git clone https://github.com/greghendershott/travis-racket.git ../travis-racket
+  - cat ../travis-racket/install-racket.sh | bash
+  - export PATH="${RACKET_DIR}/bin:${PATH}"
+
 install:
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install make          ; fi
 
