@@ -1,0 +1,25 @@
+name: Build on all three OSes
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@master
+      - name: "Install Racket"
+        uses: Bogdanp/setup-racket@v0.5
+      - run: rustup component add rustfmt
+      - run: rustup component add rustfmt
+      - run: cargo fmt -- --check
+      - run: cargo clippy --tests --features "parent-pointers"
+      - run: cargo test --features "parent-pointers"
+      - run: cargo build --release
+      - run: raco test ./
+      - run: bash ./deploy.sh
