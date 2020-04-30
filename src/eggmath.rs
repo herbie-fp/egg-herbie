@@ -83,6 +83,7 @@ define_term! {
 
 
         Add = "+",
+        Neg = "neg",
         Sub = "-",
         Mul = "*",
         Div = "/",
@@ -167,6 +168,7 @@ fn eval(op: Math, args: &[Math]) -> Option<Math> {
 
     match op {
         Math::Add => result(a(0)? + a(1)?),
+        Math::Neg => result(-a(0)?),
         Math::Sub => result(a(0)? - a(1)?),
         Math::Mul => result(a(0)? * a(1)?),
         Math::Div => {
