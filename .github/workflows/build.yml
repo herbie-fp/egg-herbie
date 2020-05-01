@@ -21,12 +21,13 @@ jobs:
       - name: Install Rust compiler
         uses: actions-rs/toolchain@v1
         with:
-            toolchain: 1.38.0
+            toolchain: stable
+            default: true
             override: true
             components: rustfmt, clippy
-      - run: cargo fmt -- --check
       - run: cargo clippy --tests --features "parent-pointers"
       - run: cargo test --features "parent-pointers"
+      - run: cargo fmt -- --check
       - run: cargo build --release
       - run: raco test ./
       - run: bash ./deploy.sh
