@@ -18,8 +18,12 @@ jobs:
       - uses: actions/checkout@master
       - name: "Install Racket"
         uses: Bogdanp/setup-racket@v0.5
-      - run: rustup component add rustfmt
-      - run: rustup component add rustfmt
+      - name: Install Rust compiler
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: 1.38.0
+            override: true
+            components: rustfmt, clippy
       - run: cargo fmt -- --check
       - run: cargo clippy --tests --features "parent-pointers"
       - run: cargo test --features "parent-pointers"
