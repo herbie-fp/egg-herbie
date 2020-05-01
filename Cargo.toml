@@ -5,7 +5,7 @@ authors = [ "Oliver Flatt <oflatt@gmail.com>", "Max Willsey <me@mwillsey.com>" ]
 edition = "2018"
 
 [dependencies]
-egg = { git = "https://github.com/mwillsey/egg", rev = "84cfa2b6d4c5162921779ec24d696ae672efd50c" }
+egg = { git = "https://github.com/mwillsey/egg", rev = "7ceb5da3" }
 log = "0.4"
 indexmap = "1.1"
 libc = "0.2.0"
