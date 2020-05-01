@@ -126,19 +126,19 @@ define_term! {
 }
 
 impl Language for Math {
-    fn cost(&self, children: &[f64]) -> f64 {
+    fn cost(&self, children: &[u64]) -> u64 {
         let cost = match self {
-            Math::Constant(_) | Math::Variable(_) | Math::FPConstant(_) => 0.0,
-            _ => 1.0,
+            Math::Constant(_) | Math::Variable(_) | Math::FPConstant(_) => 0,
+            _ => 1,
         };
 
-        cost + children.iter().sum::<f64>()
+        cost + children.iter().sum::<u64>()
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Meta {
-    pub cost: f64,
+    pub cost: u64,
     pub best: RecExpr<Math>,
 }
 
@@ -258,9 +258,10 @@ impl egg::egraph::Metadata<Math> for Meta {
         };
 
         let best: RecExpr<_> = expr.map_children(|c| c.best.clone()).into();
+        let children_costs: Vec<_> = expr.children.iter().map(|c| c.cost).collect();
         Self {
             best,
-            cost: expr.map_children(|c| c.cost).cost(),
+            cost: expr.op.cost(&children_costs),
         }
     }
 
