@@ -20,7 +20,6 @@ setup_git() {
 
 commit_website_files() {
     git checkout -b egg-herbie-deploy-$TAG
-    git pull
     git add -u
     git add target/release/* -f
     git add .travis.yml
