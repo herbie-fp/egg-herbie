@@ -28,10 +28,7 @@ commit_website_files() {
 
 upload_files() {
     git remote add origin-pages https://${GITHUB_TOKEN}@github.com/oflatt/egg-herbie > /dev/null 2>&1
-    git fetch origin-pages egg-herbie-deploy-$TAG
-    git merge origin-pages/egg-herbie-deploy-$TAG
-    git commit
-    git push --set-upstream origin-pages egg-herbie-deploy-$TAG
+    git push -f --set-upstream origin-pages egg-herbie-deploy-$TAG
 }
 
 setup_git
