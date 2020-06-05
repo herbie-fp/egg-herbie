@@ -25,10 +25,10 @@
   ([id _uint]
    [successp _bool]))
 
-(define-cstruct _FFIRule
-  ([name _string/utf-8]
-   [left _string/utf-8]
-   [right _string/utf-8])
+(define-cstruct _FFIRule ; The pointers are pointers to strings, but types hidden for allocation
+  ([name _pointer]
+   [left _pointer]
+   [right _pointer])
   #:malloc-mode 'raw)
 
 
