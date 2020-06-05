@@ -28,7 +28,8 @@
 (define-cstruct _FFIRule
   ([name _string/utf-8]
    [left _string/utf-8]
-   [right _string/utf-8]))
+   [right _string/utf-8])
+  #:malloc-mode 'raw)
 
 
 ;;  -> a pointer to an egraph

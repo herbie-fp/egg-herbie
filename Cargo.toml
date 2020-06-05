@@ -1,11 +1,11 @@
 [package]
-name = "egg-math"
-version = "0.1.0"
-authors = ["Max Willsey <me@mwillsey.com>"]
+name = "egg-herbie"
+version = "0.2.0"
+authors = [ "Oliver Flatt <oflatt@gmail.com>", "Max Willsey <me@mwillsey.com>" ]
 edition = "2018"
 
 [dependencies]
-egg = { git = "https://github.com/mwillsey/egg" }
+egg = { git = "https://github.com/mwillsey/egg", rev = "7ceb5da3" }
 log = "0.4"
 indexmap = "1.1"
 libc = "0.2.0"

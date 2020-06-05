@@ -11,4 +11,6 @@ Typically, you install Rust using [`rustup`](https://www.rust-lang.org/tools/ins
 Before committing/pushing, run `make` to check tests and formatting.
 
 
-To use as a racket package, run `raco pkg install` on the egg-herbie folder. 
+To use as a racket package, run `raco pkg install` on the egg-herbie folder.
+
+We use github actions to build racket packages. When the build succeeds, it automatically deploys the build binary.

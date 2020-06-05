@@ -8,7 +8,7 @@
 
 (provide egraph-run egraph-add-exprs egraph-run-iter
          egraph-get-simplest egg-expr->expr egg-add-exn?
-         make-ffi-rules egraph-get-cost egraph-get-size)
+         make-ffi-rules free-ffi-rules egraph-get-cost egraph-get-size)
 
 ;; the first hash table maps all symbols and non-integer values to new names for egg
 ;; the second hash is the reverse of the first
@@ -25,11 +25,27 @@
 (define (egraph-get-simplest egraph-data node-id)
   (egraph_get_simplest (egraph-data-egraph-pointer egraph-data) node-id))
 
+(define (make-raw-string s)
+  (define b (string->bytes/utf-8 s))
+  (define n (+ (bytes-length b) 1))
+  (define ptr (malloc 'raw n))
+  (memcpy ptr b n)
+  (ptr-set! ptr _byte (- n 1))
+  ptr)
+
 (define (make-ffi-rules rules)
   (for/list [(rule rules)]
-      (make-FFIRule (symbol->string (irule-name rule))
-                    (to-egg-pattern (irule-input rule))
-                    (to-egg-pattern (irule-output rule)))))
+    (define name (make-raw-string (symbol->string (irule-name rule))))
+    (define left (make-raw-string (to-egg-pattern (irule-input rule))))
+    (define right (make-raw-string (to-egg-pattern (irule-output rule))))
+    (make-FFIRule name left right)))
+
+(define (free-ffi-rules rules)
+  (for [(rule rules)]
+    (free (FFIRule-name rule))
+    (free (FFIRule-left rule))
+    (free (FFIRule-right rule))
+    (free rule)))
 
 (define (egraph-run-iter egraph-data node-limit ffi-rules precompute?)
   (egraph_run_iter (egraph-data-egraph-pointer egraph-data) node-limit ffi-rules precompute?))
