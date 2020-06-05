@@ -1,6 +1,9 @@
-name: Build on all three OSes
+name: Deploy a built package for all three OSes
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
@@ -21,9 +24,5 @@ jobs:
             default: true
             override: true
             components: rustfmt, clippy
-      - run: cargo clippy --tests
-        continue-on-error: true
-      - run: cargo test
-      - run: cargo fmt -- --check
       - run: cargo build --release
-      - run: raco test ./
+      - run: bash ./deploy.sh ${{ matrix.os }}
