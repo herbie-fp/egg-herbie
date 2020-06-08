@@ -27,10 +27,10 @@
 
 (define (make-raw-string s)
   (define b (string->bytes/utf-8 s))
-  (define n (+ (bytes-length b) 1))
-  (define ptr (malloc 'raw n))
+  (define n (bytes-length b))
+  (define ptr (malloc 'raw (+ n 1)))
   (memcpy ptr b n)
-  (ptr-set! ptr _byte (- n 1))
+  (ptr-set! ptr _byte n 0)
   ptr)
 
 (define (make-ffi-rules rules)
