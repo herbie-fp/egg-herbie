@@ -181,9 +181,7 @@ pub unsafe extern "C" fn egraph_get_cost(ptr: *mut Context, node_id: u32) -> u32
             .as_ref()
             .unwrap_or_else(|| panic!("Runner has been invalidated"));
 
-        let id = runner.egraph.find(node_id);
-        let ext = &runner.iterations[ctx.iteration].data.extracted[&id];
-
+        let ext = &runner.iterations[ctx.iteration].data.extracted[&node_id];
         ext.cost as u32
     })
 }
