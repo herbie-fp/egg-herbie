@@ -145,8 +145,9 @@ pub unsafe extern "C" fn egraph_run_iter(
             let rules: Vec<Rewrite> = rules::mk_rules(&ffi_tuples);
 
             runner.egraph.analysis.constant_fold = is_constant_folding_enabled;
-            ctx.runner = Some(runner.with_node_limit(limit as usize).run(&rules));
+            runner = runner.with_node_limit(limit as usize).run(&rules);
         }
+        ctx.runner = Some(runner);
     })
 }
 
