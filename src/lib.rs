@@ -16,7 +16,6 @@ unsafe fn cstring_to_recexpr(c_string: *const c_char) -> Option<RecExpr> {
     }
 }
 
-#[derive(Default)]
 pub struct Context {
     iteration: usize,
     runner: Option<Runner>,
@@ -25,7 +24,10 @@ pub struct Context {
 // I had to add $(rustc --print sysroot)/lib to LD_LIBRARY_PATH to get linking to work after installing rust with rustup
 #[no_mangle]
 pub unsafe extern "C" fn egraph_create() -> *mut Context {
-    Box::into_raw(Box::new(Default::default()))
+    Box::into_raw(Box::new(Context {
+        iteration: 0,
+        runner: Some(Runner::new(Default::default())),
+    }))
 }
 
 #[no_mangle]
