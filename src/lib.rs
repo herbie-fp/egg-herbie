@@ -196,6 +196,9 @@ pub unsafe extern "C" fn egraph_get_size(ptr: *mut Context) -> u32 {
             .runner
             .as_ref()
             .unwrap_or_else(|| panic!("Runner has been invalidated"));
-        runner.iterations[ctx.iteration].egraph_nodes as u32
+        match runner.iterations.get(ctx.iteration) {
+            None => 0,
+            Some(iter) => iter.egraph_nodes as u32,
+        }
     })
 }
