@@ -53,33 +53,49 @@ pub struct FFIRule {
     right: *const c_char,
 }
 
+fn ffirun<F, T>(f: F) -> T
+where
+    F: FnOnce() -> T,
+{
+    let f = std::panic::AssertUnwindSafe(f);
+    match std::panic::catch_unwind(f) {
+        Ok(t) => t,
+        Err(_) => {
+            eprintln!("Caught a panic, aborting!");
+            std::process::abort()
+        }
+    }
+}
+
 #[no_mangle]
 pub unsafe extern "C" fn egraph_add_expr(
     ptr: *mut Context,
     expr: *const c_char,
 ) -> *mut EGraphAddResult {
-    let ctx = &mut *ptr;
-    let mut runner = ctx
-        .runner
-        .take()
-        .unwrap_or_else(|| panic!("Runner has been invalidated"));
+    ffirun(|| {
+        let ctx = &mut *ptr;
+        let mut runner = ctx
+            .runner
+            .take()
+            .unwrap_or_else(|| panic!("Runner has been invalidated"));
 
-    assert_eq!(ctx.iteration, 0);
+        assert_eq!(ctx.iteration, 0);
 
-    let result = match cstring_to_recexpr(expr) {
-        None => EGraphAddResult {
-            id: 0,
-            successp: false,
-        },
-        Some(rec_expr) => {
-            runner = runner.with_expr(&rec_expr);
-            let id = *runner.roots.last().unwrap();
-            EGraphAddResult { id, successp: true }
-        }
-    };
+        let result = match cstring_to_recexpr(expr) {
+            None => EGraphAddResult {
+                id: 0,
+                successp: false,
+            },
+            Some(rec_expr) => {
+                runner = runner.with_expr(&rec_expr);
+                let id = *runner.roots.last().unwrap();
+                EGraphAddResult { id, successp: true }
+            }
+        };
 
-    ctx.runner = Some(runner);
-    Box::into_raw(Box::new(result))
+        ctx.runner = Some(runner);
+        Box::into_raw(Box::new(result))
+    })
 }
 
 // todo don't just unwrap, also make sure the rules are validly parsed
@@ -102,73 +118,81 @@ pub unsafe extern "C" fn egraph_run_iter(
     is_constant_folding_enabled: bool,
     rules_array_length: u32,
 ) {
-    let ctx = &mut *ptr;
-    let mut runner = ctx
-        .runner
-        .take()
-        .unwrap_or_else(|| panic!("Runner has been invalidated"));
+    ffirun(|| {
+        let ctx = &mut *ptr;
+        let mut runner = ctx
+            .runner
+            .take()
+            .unwrap_or_else(|| panic!("Runner has been invalidated"));
 
-    if runner.stop_reason.is_some() {
-        // we've already run, just fake an iteration
-        ctx.iteration += 1;
-    } else {
-        let length: usize = rules_array_length as usize;
-        let ffi_rules: &[*mut FFIRule] = slice::from_raw_parts(rules_array_ptr, length);
-        let mut ffi_tuples: Vec<(&str, &str, &str)> = vec![];
-        let mut ffi_strings: Vec<(String, String, String)> = vec![];
-        for ffi_rule in ffi_rules.iter() {
-            let str_tuple = ffirule_to_tuple(*ffi_rule);
-            ffi_strings.push(str_tuple);
+        if runner.stop_reason.is_some() {
+            // we've already run, just fake an iteration
+            ctx.iteration += 1;
+        } else {
+            let length: usize = rules_array_length as usize;
+            let ffi_rules: &[*mut FFIRule] = slice::from_raw_parts(rules_array_ptr, length);
+            let mut ffi_tuples: Vec<(&str, &str, &str)> = vec![];
+            let mut ffi_strings: Vec<(String, String, String)> = vec![];
+            for ffi_rule in ffi_rules.iter() {
+                let str_tuple = ffirule_to_tuple(*ffi_rule);
+                ffi_strings.push(str_tuple);
+            }
+
+            for ffi_string in ffi_strings.iter() {
+                ffi_tuples.push((&ffi_string.0, &ffi_string.1, &ffi_string.2));
+            }
+
+            let rules: Vec<Rewrite> = rules::mk_rules(&ffi_tuples);
+
+            runner.egraph.analysis.constant_fold = is_constant_folding_enabled;
+            ctx.runner = Some(runner.with_node_limit(limit as usize).run(&rules));
         }
-
-        for ffi_string in ffi_strings.iter() {
-            ffi_tuples.push((&ffi_string.0, &ffi_string.1, &ffi_string.2));
-        }
-
-        let rules: Vec<Rewrite> = rules::mk_rules(&ffi_tuples);
-
-        runner.egraph.analysis.constant_fold = is_constant_folding_enabled;
-        ctx.runner = Some(runner.with_node_limit(limit as usize).run(&rules));
-    }
+    })
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn egraph_get_simplest(ptr: *mut Context, node_id: u32) -> *const c_char {
-    let ctx = &*ptr;
-    let runner = ctx
-        .runner
-        .as_ref()
-        .unwrap_or_else(|| panic!("Runner has been invalidated"));
+    ffirun(|| {
+        let ctx = &*ptr;
+        let runner = ctx
+            .runner
+            .as_ref()
+            .unwrap_or_else(|| panic!("Runner has been invalidated"));
 
-    let id = runner.egraph.find(node_id);
-    let ext = &runner.iterations[ctx.iteration].data.extracted[&id];
+        let id = runner.egraph.find(node_id);
+        let ext = &runner.iterations[ctx.iteration].data.extracted[&id];
 
-    let best_str = CString::new(ext.best.to_string()).unwrap();
-    let best_str_pointer = best_str.as_ptr();
-    std::mem::forget(best_str);
-    best_str_pointer
+        let best_str = CString::new(ext.best.to_string()).unwrap();
+        let best_str_pointer = best_str.as_ptr();
+        std::mem::forget(best_str);
+        best_str_pointer
+    })
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn egraph_get_cost(ptr: *mut Context, node_id: u32) -> u32 {
-    let ctx = &*ptr;
-    let runner = ctx
-        .runner
-        .as_ref()
-        .unwrap_or_else(|| panic!("Runner has been invalidated"));
+    ffirun(|| {
+        let ctx = &*ptr;
+        let runner = ctx
+            .runner
+            .as_ref()
+            .unwrap_or_else(|| panic!("Runner has been invalidated"));
 
-    let id = runner.egraph.find(node_id);
-    let ext = &runner.iterations[ctx.iteration].data.extracted[&id];
+        let id = runner.egraph.find(node_id);
+        let ext = &runner.iterations[ctx.iteration].data.extracted[&id];
 
-    ext.cost as u32
+        ext.cost as u32
+    })
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn egraph_get_size(ptr: *mut Context) -> u32 {
-    let ctx = &*ptr;
-    let runner = ctx
-        .runner
-        .as_ref()
-        .unwrap_or_else(|| panic!("Runner has been invalidated"));
-    runner.iterations[ctx.iteration].egraph_nodes as u32
+    ffirun(|| {
+        let ctx = &*ptr;
+        let runner = ctx
+            .runner
+            .as_ref()
+            .unwrap_or_else(|| panic!("Runner has been invalidated"));
+        runner.iterations[ctx.iteration].egraph_nodes as u32
+    })
 }
