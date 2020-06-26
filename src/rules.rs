@@ -114,17 +114,17 @@ pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
             ("sinh-def", "(sinh ?x)", "(/ (- (exp ?x) (exp (neg ?x))) 2)"),
             ("cosh-def", "(cosh ?x)", "(/ (+ (exp ?x) (exp (neg ?x))) 2)"),
             (
-                "tanh-def",
+                "tanh-def1",
                 "(tanh ?x)",
                 "(/ (- (exp ?x) (exp (neg ?x))) (+ (exp ?x) (exp (neg ?x))))",
             ),
             (
-                "tanh-def",
+                "tanh-def2",
                 "(tanh ?x)",
                 "(/ (- (exp (* 2 ?x)) 1) (+ (exp (* 2 ?x)) 1))",
             ),
             (
-                "tanh-def",
+                "tanh-def3",
                 "(tanh ?x)",
                 "(/ (- 1 (exp (* -2 ?x))) (+ 1 (exp (* -2 ?x))))",
             ),
@@ -391,8 +391,8 @@ pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
             ("+-inverses", "(- ?a ?a)", "0"),
             ("*-inverses", "(/ ?a ?a)", "1"),
             ("div0", "(/ 0 ?a)", "0"),
-            ("mul0", "(* 0 ?a)", "0"),
-            ("mul0", "(* ?a 0)", "0"),
+            ("mul0l", "(* 0 ?a)", "0"),
+            ("mul0r", "(* ?a 0)", "0"),
         ],
     );
     add(

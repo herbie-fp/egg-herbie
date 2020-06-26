@@ -141,7 +141,7 @@ define_language! {
         "real->posit" = RealToPosit(Id),
 
         Constant(Constant),
-        Variable(String),
+        Variable(egg::Symbol),
     }
 }
 
@@ -168,11 +168,12 @@ impl Analysis<Math> for ConstantFold {
 
         let x = |id: &Id| egraph[*id].data.as_ref();
         match enode {
+            Math::Constant(c) => Some(c.clone()),
             Math::Add([a, b]) => Some(x(a)? + x(b)?),
             Math::Sub([a, b]) => Some(x(a)? - x(b)?),
             Math::Mul([a, b]) => Some(x(a)? * x(b)?),
             Math::Div([a, b]) => {
-                if x(a)?.is_zero() {
+                if x(b)?.is_zero() {
                     None
                 } else {
                     Some(x(a)? / x(b)?)
@@ -181,10 +182,7 @@ impl Analysis<Math> for ConstantFold {
             Math::Neg(a) => Some(-x(a)?.clone()),
             Math::Pow([a, b]) => {
                 if x(b)?.is_integer() {
-                    let exponent = x(b)?.numer().to_biguint()?;
-                    let new_top = Pow::pow(x(a)?.numer(), &exponent);
-                    let new_bot = Pow::pow(x(a)?.denom(), &exponent);
-                    Some(Ratio::new(new_top, new_bot))
+                    Some(Pow::pow(x(a)?, x(b)?.to_integer()))
                 } else {
                     None
                 }

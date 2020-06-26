@@ -19,3 +19,8 @@ egg::test_fn! {
     =>
     "(/ 1 (sqrt five))"
 }
+
+egg::test_fn! {
+    math_simplify_neg, rules(),
+    "(neg 1)" => "-1"
+}
