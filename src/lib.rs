@@ -162,8 +162,7 @@ pub unsafe extern "C" fn egraph_get_simplest(ptr: *mut Context, node_id: u32) ->
             .as_ref()
             .unwrap_or_else(|| panic!("Runner has been invalidated"));
 
-        let id = runner.egraph.find(node_id);
-        let ext = &runner.iterations[ctx.iteration].data.extracted[&id];
+        let ext = &runner.iterations[ctx.iteration].data.extracted[&node_id];
 
         let best_str = CString::new(ext.best.to_string()).unwrap();
         let best_str_pointer = best_str.as_ptr();
