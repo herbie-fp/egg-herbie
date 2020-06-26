@@ -5,6 +5,5 @@ test: test-math
 
 .PHONY: test-math
 test-math:
-	cargo clippy --tests --features "parent-pointers"
-	cargo test --features "parent-pointers"
-
+	cargo clippy --tests
+	cargo test
