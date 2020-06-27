@@ -1,7 +1,5 @@
 use egg::*;
 
-use std::collections::HashMap;
-
 use num_bigint::BigInt;
 use num_rational::Ratio;
 use num_traits::{Pow, Signed, Zero};
@@ -15,7 +13,7 @@ pub type Runner = egg::Runner<Math, ConstantFold, IterData>;
 pub type Iteration = egg::Iteration<IterData>;
 
 pub struct IterData {
-    pub extracted: HashMap<Id, Extracted>,
+    pub extracted: Vec<(Id, Extracted)>,
 }
 
 pub struct Extracted {
@@ -119,7 +117,7 @@ define_language! {
         "asin" = Asin(Id),
         "acos" = Acos(Id),
         "atan" = Atan(Id),
-        "atan2" = Atan2(Id),
+        "atan2" = Atan2([Id; 2]),
         "sinh" = Sinh(Id),
         "cosh" = Cosh(Id),
         "tanh" = Tanh(Id),

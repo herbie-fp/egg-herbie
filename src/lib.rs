@@ -8,10 +8,14 @@ use std::os::raw::c_char;
 use std::slice;
 
 unsafe fn cstring_to_recexpr(c_string: *const c_char) -> Option<RecExpr> {
-    let bytes = CStr::from_ptr(c_string).to_bytes();
-    let string_result = std::str::from_utf8(bytes);
-    match string_result {
-        Ok(expr_string) => expr_string.parse().ok(),
+    match CStr::from_ptr(c_string).to_str() {
+        Ok(expr_string) => match expr_string.parse() {
+            Ok(expr) => Some(expr),
+            Err(err) => {
+                eprintln!("{}", err);
+                None
+            }
+        },
         Err(_error) => None,
     }
 }
@@ -153,6 +157,20 @@ pub unsafe extern "C" fn egraph_run_iter(
     })
 }
 
+fn find_extracted(runner: &Runner, id: u32) -> &Extracted {
+    let id = runner.egraph.find(id);
+    let iter = runner
+        .iterations
+        .last()
+        .expect("There should be some iterations by now!");
+    iter.data
+        .extracted
+        .iter()
+        .find(|(i, _)| runner.egraph.find(*i) == id)
+        .map(|(_, ext)| ext)
+        .expect("Couldn't find matching extraction!")
+}
+
 #[no_mangle]
 pub unsafe extern "C" fn egraph_get_simplest(ptr: *mut Context, node_id: u32) -> *const c_char {
     ffirun(|| {
@@ -162,7 +180,7 @@ pub unsafe extern "C" fn egraph_get_simplest(ptr: *mut Context, node_id: u32) ->
             .as_ref()
             .unwrap_or_else(|| panic!("Runner has been invalidated"));
 
-        let ext = &runner.iterations[ctx.iteration].data.extracted[&node_id];
+        let ext = find_extracted(runner, node_id);
 
         let best_str = CString::new(ext.best.to_string()).unwrap();
         let best_str_pointer = best_str.as_ptr();
@@ -180,7 +198,7 @@ pub unsafe extern "C" fn egraph_get_cost(ptr: *mut Context, node_id: u32) -> u32
             .as_ref()
             .unwrap_or_else(|| panic!("Runner has been invalidated"));
 
-        let ext = &runner.iterations[ctx.iteration].data.extracted[&node_id];
+        let ext = find_extracted(runner, node_id);
         ext.cost as u32
     })
 }
@@ -193,7 +211,7 @@ pub unsafe extern "C" fn egraph_get_size(ptr: *mut Context) -> u32 {
             .runner
             .as_ref()
             .unwrap_or_else(|| panic!("Runner has been invalidated"));
-        match runner.iterations.get(ctx.iteration) {
+        match runner.iterations.last() {
             None => 0,
             Some(iter) => iter.egraph_nodes as u32,
         }
