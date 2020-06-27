@@ -10,13 +10,11 @@ egg = "0.5"
 log = "0.4"
 indexmap = "1"
 libc = "0.2.71"
-lazy_static = "1.4.0"
 smallvec = "1.4.0"
 
 num-rational = "0.3.0"
 num-bigint = "0.3.0"
 num-traits = "0.2.12"
-ordered-float = "1"
 env_logger = { version = "0.7", default-features = false }
 
 [features]
@@ -32,3 +30,5 @@ opt-level = 1
 
 [profile.release]
 debug = true
+lto = "fat"
+codegen-units = 1
