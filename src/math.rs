@@ -130,7 +130,7 @@ define_language! {
         "log10" = Log10(Id),
         "log2" = Log2(Id),
         "expm1" = Expm1(Id),
-        "hypot" = Hypot(Id),
+        "hypot" = Hypot([Id; 2]),
 
         "+.p16" = PositAdd([Id; 2]),
         "-.p16" = PositSub([Id; 2]),
