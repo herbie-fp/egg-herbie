@@ -125,7 +125,7 @@ define_language! {
         "acosh" = Acosh(Id),
         "atanh" = Atanh(Id),
 
-        "fma" = Fma([Id; 2]),
+        "fma" = Fma([Id; 3]),
         "log1p" = Log1p(Id),
         "log10" = Log10(Id),
         "log2" = Log2(Id),
