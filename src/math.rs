@@ -179,7 +179,7 @@ impl Analysis<Math> for ConstantFold {
             }
             Math::Neg(a) => Some(-x(a)?.clone()),
             Math::Pow([a, b]) => {
-                if x(b)?.is_integer() {
+                if x(b)?.is_integer() && (!x(a)?.is_zero() || x(b)? > &Ratio::zero()) {
                     Some(Pow::pow(x(a)?, x(b)?.to_integer()))
                 } else {
                     None
