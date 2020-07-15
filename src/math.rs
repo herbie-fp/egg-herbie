@@ -1,5 +1,7 @@
 use egg::*;
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use num_bigint::BigInt;
 use num_rational::Ratio;
 use num_traits::{Pow, Signed, Zero};
@@ -144,6 +146,7 @@ define_language! {
 }
 
 pub struct ConstantFold {
+    pub unsound: AtomicBool,
     pub constant_fold: bool,
     pub prune: bool,
 }
@@ -153,6 +156,7 @@ impl Default for ConstantFold {
         Self {
             constant_fold: true,
             prune: true,
+            unsound: AtomicBool::from(false),
         }
     }
 }
@@ -210,11 +214,21 @@ impl Analysis<Math> for ConstantFold {
     }
 
     fn merge(&self, to: &mut Self::Data, from: Self::Data) -> bool {
-        if to.is_none() && from.is_some() {
-            *to = from;
-            true
-        } else {
-            false
+        match (&to, from) {
+            (None, None) => false,
+            (Some(_), None) => false, // no update needed
+            (None, Some(c)) => {
+                *to = Some(c);
+                true
+            }
+            (Some(a), Some(ref b)) => {
+                if a != b {
+                    if !self.unsound.swap(true, Ordering::SeqCst) {
+                        log::warn!("Bad merge detected: {} != {}", a, b);
+                    }
+                }
+                false
+            }
         }
     }
 
