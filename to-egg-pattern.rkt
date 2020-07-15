@@ -6,10 +6,13 @@
 
 ;; copy of constants from herbie/fpcore for egg-herbie
 (define constants
-  '(E LOG2E LOG10E LN2 LN10
-      PI PI_2 PI_4 1_PI 2_PI 2_SQRTPI
-      SQRT2 SQRT1_2 MAXFLOAT HUGE_VAL
-      TRUE FALSE))
+  (append
+    '(E LOG2E LOG10E LN2 LN10
+        PI PI_2 PI_4 1_PI 2_PI 2_SQRTPI
+        SQRT2 SQRT1_2 MAXFLOAT HUGE_VAL
+        TRUE FALSE)
+    '(E.f64 PI.f64)
+    '(E.f32 PI.f32)))
 
 (define (constant? x)
   (set-member? constants x))
