@@ -6,7 +6,8 @@ edition = "2018"
 
 
 [dependencies]
-egg = "0.5"
+egg = "0.6"
+
 log = "0.4"
 indexmap = "1"
 libc = "0.2.71"
