@@ -153,8 +153,8 @@ define_language! {
         "posit8->real" = Posit8ToReal(Id),
         "real->quire8" = RealToQuire8(Id),
         "quire8->real" = Quire8ToReal(Id),
-        "quire8-mul-add" = Quire8ToReal([Id; 3]),
-        "quire8-mul-sub" = Quire8ToReal([Id; 3]),
+        "quire8-mul-add" = Quire8MulAdd([Id; 3]),
+        "quire8-mul-sub" = Quire8MulSub([Id; 3]),
         "posit8->quire8" = Posit8ToQuire8(Id),
         "quire8->posit8" = Quire8ToPosit8(Id),
 
@@ -174,8 +174,8 @@ define_language! {
         "posit16->real" = Posit16ToReal(Id),
         "real->quire16" = RealToQuire16(Id),
         "quire16->real" = Quire16ToReal(Id),
-        "quire16-mul-add" = Quire16ToReal([Id; 3]),
-        "quire16-mul-sub" = Quire16ToReal([Id; 3]),
+        "quire16-mul-add" = Quire16MulAdd([Id; 3]),
+        "quire16-mul-sub" = Quire16MulSub([Id; 3]),
         "posit16->quire16" = Posit16ToQuire16(Id),
         "quire16->posit16" = Quire16ToPosit16(Id),
 
@@ -195,8 +195,8 @@ define_language! {
         "posit32->real" = Posit32ToReal(Id),
         "real->quire32" = RealToQuire32(Id),
         "quire32->real" = Quire32ToReal(Id),
-        "quire32-mul-add" = Quire32ToReal([Id; 3]),
-        "quire32-mul-sub" = Quire32ToReal([Id; 3]),
+        "quire32-mul-add" = Quire32MulAdd([Id; 3]),
+        "quire32-mul-sub" = Quire32MulSub([Id; 3]),
         "posit32->quire32" = Posit32ToQuire32(Id),
         "quire32->posit32" = Quire32ToPosit32(Id),
 
