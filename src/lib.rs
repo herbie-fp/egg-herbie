@@ -1,3 +1,4 @@
+#![recursion_limit = "500"]
 pub mod math;
 pub mod rules;
 
