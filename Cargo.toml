@@ -6,8 +6,7 @@ edition = "2018"
 
 
 [dependencies]
-# egg = "0.5"
-egg = { git = "https://github.com/mwillsey/egg", rev = "709196f71c9f35b16855c9c47942354e7db6d0ce" }
+egg = "0.6"
 
 log = "0.4"
 indexmap = "1"
