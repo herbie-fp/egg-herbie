@@ -26,7 +26,11 @@ pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
     add(
         "erf-rules",
         &[
-            ("erf-odd", "(erf.f64 (neg.f64 ?x))", "(neg.f64 (erf.f64 ?x))"),
+            (
+                "erf-odd",
+                "(erf.f64 (neg.f64 ?x))",
+                "(neg.f64 (erf.f64 ?x))",
+            ),
             ("erf-erfc", "(erfc.f64 ?x)", "(-.f64 1 (erf.f64 ?x))"),
             ("erfc-erf", "(erf.f64 ?x)", "(-.f64 1 (erfc.f64 ?x))"),
         ],
@@ -140,9 +144,17 @@ pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
     add(
         "trig-reduce-fp-sound-nan",
         &[
-            ("sin-neg", "(sin.f64 (neg.f64 ?x))", "(neg.f64 (sin.f64 ?x))"),
+            (
+                "sin-neg",
+                "(sin.f64 (neg.f64 ?x))",
+                "(neg.f64 (sin.f64 ?x))",
+            ),
             ("cos-neg", "(cos.f64 (neg.f64 ?x))", "(cos.f64 ?x)"),
-            ("tan-neg", "(tan.f64 (neg.f64 ?x))", "(neg.f64 (tan.f64 ?x))"),
+            (
+                "tan-neg",
+                "(tan.f64 (neg.f64 ?x))",
+                "(neg.f64 (tan.f64 ?x))",
+            ),
         ],
     );
     add(
@@ -192,25 +204,65 @@ pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
                 "(neg.f64 (*.f64 (cos.f64 ?a) (cos.f64 ?a)))",
             ),
             ("sin-PI/6", "(sin.f64 (/.f64 PI 6))", "1/2"),
-            ("sin-PI/4", "(sin.f64 (/.f64 PI 4))", "(/.f64 (sqrt.f64 2) 2)"),
-            ("sin-PI/3", "(sin.f64 (/.f64 PI 3))", "(/.f64 (sqrt.f64 3) 2)"),
+            (
+                "sin-PI/4",
+                "(sin.f64 (/.f64 PI 4))",
+                "(/.f64 (sqrt.f64 2) 2)",
+            ),
+            (
+                "sin-PI/3",
+                "(sin.f64 (/.f64 PI 3))",
+                "(/.f64 (sqrt.f64 3) 2)",
+            ),
             ("sin-PI/2", "(sin.f64 (/.f64 PI 2))", "1"),
             ("sin-PI", "(sin.f64 PI)", "0"),
-            ("sin-+PI", "(sin.f64 (+.f64 ?x PI))", "(neg.f64 (sin.f64 ?x))"),
-            ("sin-+PI/2", "(sin.f64 (+.f64 ?x (/.f64 PI 2)))", "(cos.f64 ?x)"),
-            ("cos-PI/6", "(cos.f64 (/.f64 PI 6))", "(/.f64 (sqrt.f64 3) 2)"),
-            ("cos-PI/4", "(cos.f64 (/.f64 PI 4))", "(/.f64 (sqrt.f64 2) 2)"),
+            (
+                "sin-+PI",
+                "(sin.f64 (+.f64 ?x PI))",
+                "(neg.f64 (sin.f64 ?x))",
+            ),
+            (
+                "sin-+PI/2",
+                "(sin.f64 (+.f64 ?x (/.f64 PI 2)))",
+                "(cos.f64 ?x)",
+            ),
+            (
+                "cos-PI/6",
+                "(cos.f64 (/.f64 PI 6))",
+                "(/.f64 (sqrt.f64 3) 2)",
+            ),
+            (
+                "cos-PI/4",
+                "(cos.f64 (/.f64 PI 4))",
+                "(/.f64 (sqrt.f64 2) 2)",
+            ),
             ("cos-PI/3", "(cos.f64 (/.f64 PI 3))", "1/2"),
             ("cos-PI/2", "(cos.f64 (/.f64 PI 2))", "0"),
             ("cos-PI", "(cos.f64 PI)", "-1"),
-            ("cos-+PI", "(cos.f64 (+.f64 ?x PI))", "(neg.f64 (cos.f64 ?x))"),
-            ("cos-+PI/2", "(cos.f64 (+.f64 ?x (/.f64 PI 2)))", "(neg.f64 (sin.f64 ?x))"),
-            ("tan-PI/6", "(tan.f64 (/.f64 PI 6))", "(/.f64 1 (sqrt.f64 3))"),
+            (
+                "cos-+PI",
+                "(cos.f64 (+.f64 ?x PI))",
+                "(neg.f64 (cos.f64 ?x))",
+            ),
+            (
+                "cos-+PI/2",
+                "(cos.f64 (+.f64 ?x (/.f64 PI 2)))",
+                "(neg.f64 (sin.f64 ?x))",
+            ),
+            (
+                "tan-PI/6",
+                "(tan.f64 (/.f64 PI 6))",
+                "(/.f64 1 (sqrt.f64 3))",
+            ),
             ("tan-PI/4", "(tan.f64 (/.f64 PI 4))", "1"),
             ("tan-PI/3", "(tan.f64 (/.f64 PI 3))", "(sqrt.f64 3)"),
             ("tan-PI", "(tan.f64 PI)", "0"),
             ("tan-+PI", "(tan.f64 (+.f64 ?x PI))", "(tan.f64 ?x)"),
-            ("tan-+PI/2", "(tan.f64 (+.f64 ?x (/.f64 PI 2)))", "(neg.f64 (/.f64 1 (tan.f64 ?x)))"),
+            (
+                "tan-+PI/2",
+                "(tan.f64 (+.f64 ?x (/.f64 PI 2)))",
+                "(neg.f64 (/.f64 1 (tan.f64 ?x)))",
+            ),
             (
                 "hang-0p-tan",
                 "(/.f64 (sin.f64 ?a) (+.f64 1 (cos.f64 ?a)))",
@@ -247,17 +299,41 @@ pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
     add(
         "log-distribute",
         &[
-            ("log-prod", "(log.f64 (*.f64 ?a ?b))", "(+.f64 (log.f64 ?a) (log.f64 ?b))"),
-            ("log-div", "(log.f64 (/.f64 ?a ?b))", "(-.f64 (log.f64 ?a) (log.f64 ?b))"),
-            ("log-rec", "(log.f64 (/.f64 1 ?a))", "(neg.f64 (log.f64 ?a))"),
-            ("log-pow", "(log.f64 (pow.f64 ?a ?b))", "(*.f64 ?b (log.f64 ?a))"),
+            (
+                "log-prod",
+                "(log.f64 (*.f64 ?a ?b))",
+                "(+.f64 (log.f64 ?a) (log.f64 ?b))",
+            ),
+            (
+                "log-div",
+                "(log.f64 (/.f64 ?a ?b))",
+                "(-.f64 (log.f64 ?a) (log.f64 ?b))",
+            ),
+            (
+                "log-rec",
+                "(log.f64 (/.f64 1 ?a))",
+                "(neg.f64 (log.f64 ?a))",
+            ),
+            (
+                "log-pow",
+                "(log.f64 (pow.f64 ?a ?b))",
+                "(*.f64 ?b (log.f64 ?a))",
+            ),
         ],
     );
     add(
         "pow-canonicalize",
         &[
-            ("exp-to-pow", "(exp.f64 (*.f64 (log.f64 ?a) ?b))", "(pow.f64 ?a ?b)"),
-            ("pow-plus", "(*.f64 (pow.f64 ?a ?b) ?a)", "(pow.f64 ?a (+.f64 ?b 1))"),
+            (
+                "exp-to-pow",
+                "(exp.f64 (*.f64 (log.f64 ?a) ?b))",
+                "(pow.f64 ?a ?b)",
+            ),
+            (
+                "pow-plus",
+                "(*.f64 (pow.f64 ?a ?b) ?a)",
+                "(pow.f64 ?a (+.f64 ?b 1))",
+            ),
             ("unpow1/2", "(pow.f64 ?a 1/2)", "(sqrt.f64 ?a)"),
             ("unpow2", "(pow.f64 ?a 2)", "(*.f64 ?a ?a)"),
             ("unpow3", "(pow.f64 ?a 3)", "(*.f64 (*.f64 ?a ?a) ?a)"),
@@ -272,26 +348,73 @@ pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
         ],
     );
     add("pow-reduce-fp-safe", &[("unpow1", "(pow.f64 ?a 1)", "?a")]);
-    add("pow-reduce", &[("unpow-1", "(pow.f64 ?a -1)", "(/.f64 1 ?a)")]);
+    add(
+        "pow-reduce",
+        &[("unpow-1", "(pow.f64 ?a -1)", "(/.f64 1 ?a)")],
+    );
     add(
         "exp-factor",
         &[
-            ("prod-exp", "(*.f64 (exp.f64 ?a) (exp.f64 ?b))", "(exp.f64 (+.f64 ?a ?b))"),
-            ("rec-exp", "(/.f64 1 (exp.f64 ?a))", "(exp.f64 (neg.f64 ?a))"),
-            ("div-exp", "(/.f64 (exp.f64 ?a) (exp.f64 ?b))", "(exp.f64 (-.f64 ?a ?b))"),
-            ("exp-prod", "(exp.f64 (*.f64 ?a ?b))", "(pow.f64 (exp.f64 ?a) ?b)"),
-            ("exp-sqrt", "(exp.f64 (/.f64 ?a 2))", "(sqrt.f64 (exp.f64 ?a))"),
-            ("exp-cbrt", "(exp.f64 (/.f64 ?a 3))", "(cbrt.f64 (exp.f64 ?a))"),
-            ("exp-lft-sqr", "(exp.f64 (*.f64 ?a 2))", "(*.f64 (exp.f64 ?a) (exp.f64 ?a))"),
-            ("exp-lft-cube", "(exp.f64 (*.f64 ?a 3))", "(pow.f64 (exp.f64 ?a) 3)"),
+            (
+                "prod-exp",
+                "(*.f64 (exp.f64 ?a) (exp.f64 ?b))",
+                "(exp.f64 (+.f64 ?a ?b))",
+            ),
+            (
+                "rec-exp",
+                "(/.f64 1 (exp.f64 ?a))",
+                "(exp.f64 (neg.f64 ?a))",
+            ),
+            (
+                "div-exp",
+                "(/.f64 (exp.f64 ?a) (exp.f64 ?b))",
+                "(exp.f64 (-.f64 ?a ?b))",
+            ),
+            (
+                "exp-prod",
+                "(exp.f64 (*.f64 ?a ?b))",
+                "(pow.f64 (exp.f64 ?a) ?b)",
+            ),
+            (
+                "exp-sqrt",
+                "(exp.f64 (/.f64 ?a 2))",
+                "(sqrt.f64 (exp.f64 ?a))",
+            ),
+            (
+                "exp-cbrt",
+                "(exp.f64 (/.f64 ?a 3))",
+                "(cbrt.f64 (exp.f64 ?a))",
+            ),
+            (
+                "exp-lft-sqr",
+                "(exp.f64 (*.f64 ?a 2))",
+                "(*.f64 (exp.f64 ?a) (exp.f64 ?a))",
+            ),
+            (
+                "exp-lft-cube",
+                "(exp.f64 (*.f64 ?a 3))",
+                "(pow.f64 (exp.f64 ?a) 3)",
+            ),
         ],
     );
     add(
         "exp-distribute",
         &[
-            ("exp-sum", "(exp.f64 (+.f64 ?a ?b))", "(*.f64 (exp.f64 ?a) (exp.f64 ?b))"),
-            ("exp-neg", "(exp.f64 (neg.f64 ?a))", "(/.f64 1 (exp.f64 ?a))"),
-            ("exp-diff", "(exp.f64 (-.f64 ?a ?b))", "(/.f64 (exp.f64 ?a) (exp.f64 ?b))"),
+            (
+                "exp-sum",
+                "(exp.f64 (+.f64 ?a ?b))",
+                "(*.f64 (exp.f64 ?a) (exp.f64 ?b))",
+            ),
+            (
+                "exp-neg",
+                "(exp.f64 (neg.f64 ?a))",
+                "(/.f64 1 (exp.f64 ?a))",
+            ),
+            (
+                "exp-diff",
+                "(exp.f64 (-.f64 ?a ?b))",
+                "(/.f64 (exp.f64 ?a) (exp.f64 ?b))",
+            ),
         ],
     );
     add(
@@ -322,7 +445,11 @@ pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
                 "(pow.f64 (*.f64 ?x ?y) 3)",
                 "(*.f64 (pow.f64 ?x 3) (pow.f64 ?y 3))",
             ),
-            ("cube-div", "(pow.f64 (/.f64 ?x ?y) 3)", "(/.f64 (pow.f64 ?x 3) (pow.f64 ?y 3))"),
+            (
+                "cube-div",
+                "(pow.f64 (/.f64 ?x ?y) 3)",
+                "(/.f64 (pow.f64 ?x 3) (pow.f64 ?y 3))",
+            ),
             ("cube-mult", "(pow.f64 ?x 3)", "(*.f64 ?x (*.f64 ?x ?x))"),
         ],
     );
@@ -331,18 +458,34 @@ pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
         &[
             ("rem-cube-cbrt", "(pow.f64 (cbrt.f64 ?x) 3)", "?x"),
             ("rem-cbrt-cube", "(cbrt.f64 (pow.f64 ?x 3))", "?x"),
-            ("cube-neg", "(pow.f64 (neg.f64 ?x) 3)", "(neg.f64 (pow.f64 ?x 3))"),
+            (
+                "cube-neg",
+                "(pow.f64 (neg.f64 ?x) 3)",
+                "(neg.f64 (pow.f64 ?x 3))",
+            ),
         ],
     );
     add(
         "squares-reduce-fp-sound",
-        &[("sqr-neg", "(*.f64 (neg.f64 ?x) (neg.f64 ?x))", "(*.f64 ?x ?x)")],
+        &[(
+            "sqr-neg",
+            "(*.f64 (neg.f64 ?x) (neg.f64 ?x))",
+            "(*.f64 ?x ?x)",
+        )],
     );
     add(
         "squares-reduce",
         &[
-            ("rem-square-sqrt", "(*.f64 (sqrt.f64 ?x) (sqrt.f64 ?x))", "?x"),
-            ("rem-sqrt-square", "(sqrt.f64 (*.f64 ?x ?x))", "(fabs.f64 ?x)"),
+            (
+                "rem-square-sqrt",
+                "(*.f64 (sqrt.f64 ?x) (sqrt.f64 ?x))",
+                "?x",
+            ),
+            (
+                "rem-sqrt-square",
+                "(sqrt.f64 (*.f64 ?x ?x))",
+                "(fabs.f64 ?x)",
+            ),
         ],
     );
     add(
@@ -363,7 +506,11 @@ pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
     add(
         "fractions-distribute",
         &[
-            ("div-sub", "(/.f64 (-.f64 ?a ?b) ?c)", "(-.f64 (/.f64 ?a ?c) (/.f64 ?b ?c))"),
+            (
+                "div-sub",
+                "(/.f64 (-.f64 ?a ?b) ?c)",
+                "(-.f64 (/.f64 ?a ?c) (/.f64 ?b ?c))",
+            ),
             (
                 "times-frac",
                 "(/.f64 (*.f64 ?a ?b) (*.f64 ?c ?d))",
@@ -476,8 +623,16 @@ pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
                 "(+.f64 (neg.f64 ?a) (neg.f64 ?b))",
                 "(neg.f64 (+.f64 ?a ?b))",
             ),
-            ("distribute-frac-neg", "(/.f64 (neg.f64 ?a) ?b)", "(neg.f64 (/.f64 ?a ?b))"),
-            ("distribute-neg-frac", "(neg.f64 (/.f64 ?a ?b))", "(/.f64 (neg.f64 ?a) ?b)"),
+            (
+                "distribute-frac-neg",
+                "(/.f64 (neg.f64 ?a) ?b)",
+                "(neg.f64 (/.f64 ?a ?b))",
+            ),
+            (
+                "distribute-neg-frac",
+                "(neg.f64 (/.f64 ?a ?b))",
+                "(/.f64 (neg.f64 ?a) ?b)",
+            ),
         ],
     );
     add(
@@ -558,8 +713,16 @@ pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
                 "(-.f64 (*.f64 ?b ?a) (*.f64 ?c ?a))",
                 "(*.f64 ?a (-.f64 ?b ?c))",
             ),
-            ("distribute-lft1-in", "(+.f64 (*.f64 ?b ?a) ?a)", "(*.f64 (+.f64 ?b 1) ?a)"),
-            ("distribute-rgt1-in", "(+.f64 ?a (*.f64 ?c ?a))", "(*.f64 (+.f64 ?c 1) ?a)"),
+            (
+                "distribute-lft1-in",
+                "(+.f64 (*.f64 ?b ?a) ?a)",
+                "(*.f64 (+.f64 ?b 1) ?a)",
+            ),
+            (
+                "distribute-rgt1-in",
+                "(+.f64 ?a (*.f64 ?c ?a))",
+                "(*.f64 (+.f64 ?c 1) ?a)",
+            ),
         ],
     );
     add("counting", &[("count-2", "(+.f64 ?x ?x)", "(*.f64 2 ?x)")]);
@@ -653,22 +816,86 @@ pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
     add(
         "associativity",
         &[
-            ("associate-+r+", "(+.f64 ?a (+.f64 ?b ?c))", "(+.f64 (+.f64 ?a ?b) ?c)"),
-            ("associate-+l+", "(+.f64 (+.f64 ?a ?b) ?c)", "(+.f64 ?a (+.f64 ?b ?c))"),
-            ("associate-+r-", "(+.f64 ?a (-.f64 ?b ?c))", "(-.f64 (+.f64 ?a ?b) ?c)"),
-            ("associate-+l-", "(+.f64 (-.f64 ?a ?b) ?c)", "(-.f64 ?a (-.f64 ?b ?c))"),
-            ("associate--r+", "(-.f64 ?a (+.f64 ?b ?c))", "(-.f64 (-.f64 ?a ?b) ?c)"),
-            ("associate--l+", "(-.f64 (+.f64 ?a ?b) ?c)", "(+.f64 ?a (-.f64 ?b ?c))"),
-            ("associate--l-", "(-.f64 (-.f64 ?a ?b) ?c)", "(-.f64 ?a (+.f64 ?b ?c))"),
-            ("associate--r-", "(-.f64 ?a (-.f64 ?b ?c))", "(+.f64 (-.f64 ?a ?b) ?c)"),
-            ("associate-*r*", "(*.f64 ?a (*.f64 ?b ?c))", "(*.f64 (*.f64 ?a ?b) ?c)"),
-            ("associate-*l*", "(*.f64 (*.f64 ?a ?b) ?c)", "(*.f64 ?a (*.f64 ?b ?c))"),
-            ("associate-*r/", "(*.f64 ?a (/.f64 ?b ?c))", "(/.f64 (*.f64 ?a ?b) ?c)"),
-            ("associate-*l/", "(*.f64 (/.f64 ?a ?b) ?c)", "(/.f64 (*.f64 ?a ?c) ?b)"),
-            ("associate-/r*", "(/.f64 ?a (*.f64 ?b ?c))", "(/.f64 (/.f64 ?a ?b) ?c)"),
-            ("associate-/l*", "(/.f64 (*.f64 ?b ?c) ?a)", "(/.f64 ?b (/.f64 ?a ?c))"),
-            ("associate-/r/", "(/.f64 ?a (/.f64 ?b ?c))", "(*.f64 (/.f64 ?a ?b) ?c)"),
-            ("associate-/l/", "(/.f64 (/.f64 ?b ?c) ?a)", "(/.f64 ?b (*.f64 ?a ?c))"),
+            (
+                "associate-+r+",
+                "(+.f64 ?a (+.f64 ?b ?c))",
+                "(+.f64 (+.f64 ?a ?b) ?c)",
+            ),
+            (
+                "associate-+l+",
+                "(+.f64 (+.f64 ?a ?b) ?c)",
+                "(+.f64 ?a (+.f64 ?b ?c))",
+            ),
+            (
+                "associate-+r-",
+                "(+.f64 ?a (-.f64 ?b ?c))",
+                "(-.f64 (+.f64 ?a ?b) ?c)",
+            ),
+            (
+                "associate-+l-",
+                "(+.f64 (-.f64 ?a ?b) ?c)",
+                "(-.f64 ?a (-.f64 ?b ?c))",
+            ),
+            (
+                "associate--r+",
+                "(-.f64 ?a (+.f64 ?b ?c))",
+                "(-.f64 (-.f64 ?a ?b) ?c)",
+            ),
+            (
+                "associate--l+",
+                "(-.f64 (+.f64 ?a ?b) ?c)",
+                "(+.f64 ?a (-.f64 ?b ?c))",
+            ),
+            (
+                "associate--l-",
+                "(-.f64 (-.f64 ?a ?b) ?c)",
+                "(-.f64 ?a (+.f64 ?b ?c))",
+            ),
+            (
+                "associate--r-",
+                "(-.f64 ?a (-.f64 ?b ?c))",
+                "(+.f64 (-.f64 ?a ?b) ?c)",
+            ),
+            (
+                "associate-*r*",
+                "(*.f64 ?a (*.f64 ?b ?c))",
+                "(*.f64 (*.f64 ?a ?b) ?c)",
+            ),
+            (
+                "associate-*l*",
+                "(*.f64 (*.f64 ?a ?b) ?c)",
+                "(*.f64 ?a (*.f64 ?b ?c))",
+            ),
+            (
+                "associate-*r/",
+                "(*.f64 ?a (/.f64 ?b ?c))",
+                "(/.f64 (*.f64 ?a ?b) ?c)",
+            ),
+            (
+                "associate-*l/",
+                "(*.f64 (/.f64 ?a ?b) ?c)",
+                "(/.f64 (*.f64 ?a ?c) ?b)",
+            ),
+            (
+                "associate-/r*",
+                "(/.f64 ?a (*.f64 ?b ?c))",
+                "(/.f64 (/.f64 ?a ?b) ?c)",
+            ),
+            (
+                "associate-/l*",
+                "(/.f64 (*.f64 ?b ?c) ?a)",
+                "(/.f64 ?b (/.f64 ?a ?c))",
+            ),
+            (
+                "associate-/r/",
+                "(/.f64 ?a (/.f64 ?b ?c))",
+                "(*.f64 (/.f64 ?a ?b) ?c)",
+            ),
+            (
+                "associate-/l/",
+                "(/.f64 (/.f64 ?b ?c) ?a)",
+                "(/.f64 ?b (*.f64 ?a ?c))",
+            ),
             ("sub-neg", "(-.f64 ?a ?b)", "(+.f64 ?a (neg.f64 ?b))"),
             ("unsub-neg", "(+.f64 ?a (neg.f64 ?b))", "(-.f64 ?a ?b)"),
         ],

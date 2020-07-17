@@ -43,7 +43,7 @@ impl IterationData<Math, ConstantFold> for IterData {
 define_language! {
     pub enum Math {
 
-        // FPCore constants   
+        // FPCore constants
         "TRUE" = True,
         "FALSE" = False,
         "LOG2E" = Log2E,
@@ -82,7 +82,7 @@ define_language! {
         ">.f64" = Greaterf64([Id; 2]),
         "<=.f64" = LessEqf64([Id; 2]),
         ">=.f64" = GreaterEqf64([Id; 2]),
-        
+
         "erf.f64" = Erff64(Id),
         "erfc.f64" = Erfcf64(Id),
         "tgamma.f64" = Tgammaf64(Id),
@@ -132,13 +132,13 @@ define_language! {
         "expm1.f64" = Expm1f64(Id),
         "hypot.f64" = Hypotf64([Id; 2]),
 
-        // binary32 
+        // binary32
 
         "<.f32" = Lessf32([Id; 2]),
         ">.f32" = Greaterf32([Id; 2]),
         "<=.f32" = LessEqf32([Id; 2]),
         ">=.f32" = GreaterEqf32([Id; 2]),
-        
+
         "erf.f32" = Erff32(Id),
         "erfc.f32" = Erfcf32(Id),
         "tgamma.f32" = Tgammaf32(Id),
