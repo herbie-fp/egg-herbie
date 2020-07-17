@@ -1,1 +1,0 @@
-("7.7" racket ("74072e8d4057c5b56dd6711f42920f90989f0368" . "239ff26f214f5c12f9506bd1b82b6859dc6e2871") (collects #"ffi" #"unsafe" #"define.rkt") (collects #"ffi" #"unsafe.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt") (collects #"racket" #"runtime-path.rkt"))
