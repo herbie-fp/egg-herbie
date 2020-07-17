@@ -262,7 +262,7 @@ define_language! {
         "quire32-mul-sub" = Quire32MulSub([Id; 3]),
         "posit32->quire32" = Posit32ToQuire32(Id),
         "quire32->posit32" = Quire32ToPosit32(Id),
-        
+
         Constant(Constant),
         Variable(egg::Symbol),
     }
