@@ -11,16 +11,16 @@ egg::test_fn! {
     math_simplify_root, rules(),
     // runner = Runner::default().with_node_limit(75_000),
     r#"
-    (/ 1
-       (- (/ (+ 1 (sqrt five))
+    (/.f64 1
+       (-.f64 (/.f64 (+.f64 1 (sqrt.f64 five))
              2)
-          (/ (- 1 (sqrt five))
+          (/.f64 (-.f64 1 (sqrt.f64 five))
              2)))"#
     =>
-    "(/ 1 (sqrt five))"
+    "(/.f64 1 (sqrt.f64 five))"
 }
 
 egg::test_fn! {
     math_simplify_neg, rules(),
-    "(neg 1)" => "-1"
+    "(neg.f64 1)" => "-1"
 }
