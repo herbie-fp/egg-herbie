@@ -3,11 +3,12 @@
 pub mod math;
 pub mod rules;
 
+use egg::Id;
 use math::*;
 
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
-use std::slice;
+use std::{slice, sync::atomic::Ordering};
 
 unsafe fn cstring_to_recexpr(c_string: *const c_char) -> Option<RecExpr> {
     match CStr::from_ptr(c_string).to_str() {
@@ -81,6 +82,7 @@ pub unsafe extern "C" fn egraph_add_expr(
     expr: *const c_char,
 ) -> *mut EGraphAddResult {
     ffirun(|| {
+        let _ = env_logger::try_init();
         let ctx = &mut *ptr;
         let mut runner = ctx
             .runner
@@ -97,6 +99,7 @@ pub unsafe extern "C" fn egraph_add_expr(
             Some(rec_expr) => {
                 runner = runner.with_expr(&rec_expr);
                 let id = *runner.roots.last().unwrap();
+                let id = usize::from(id) as u32;
                 EGraphAddResult { id, successp: true }
             }
         };
@@ -153,24 +156,38 @@ pub unsafe extern "C" fn egraph_run_iter(
             let rules: Vec<Rewrite> = rules::mk_rules(&ffi_tuples);
 
             runner.egraph.analysis.constant_fold = is_constant_folding_enabled;
-            runner = runner.with_node_limit(limit as usize).run(&rules);
+            runner = runner
+                .with_node_limit(limit as usize)
+                .with_hook(|r| {
+                    if r.egraph.analysis.unsound.load(Ordering::SeqCst) {
+                        Err("Unsoundness detected".into())
+                    } else {
+                        Ok(())
+                    }
+                })
+                .run(&rules);
         }
         ctx.runner = Some(runner);
     })
 }
 
 fn find_extracted(runner: &Runner, id: u32) -> &Extracted {
-    let id = runner.egraph.find(id);
-    let iter = runner
-        .iterations
-        .last()
-        .expect("There should be some iterations by now!");
-    iter.data
+    let id = runner.egraph.find(Id::from(id as usize));
+    let desired_iter = if runner.egraph.analysis.unsound.load(Ordering::SeqCst) {
+        // go back one more iter, add egg can duplicate the final iter in the case of an error
+        runner.iterations.len().saturating_sub(3)
+    } else {
+        runner.iterations.len().saturating_sub(1)
+    };
+
+    runner.iterations[desired_iter]
+        .data
         .extracted
         .iter()
         .find(|(i, _)| runner.egraph.find(*i) == id)
         .map(|(_, ext)| ext)
         .expect("Couldn't find matching extraction!")
+        .clone()
 }
 
 #[no_mangle]

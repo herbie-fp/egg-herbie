@@ -1,5 +1,7 @@
 use egg::*;
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use num_bigint::BigInt;
 use num_rational::Ratio;
 use num_traits::{Pow, Signed, Zero};
@@ -74,18 +76,8 @@ define_language! {
         "and" = And([Id; 2]),
         "or" = Or([Id; 2]),
 
-        // complex operators not from FPCore
-        "re" = Re(Id),
-        "im" = Im(Id),
-        "complex" = Complex([Id; 2]),
-        "conj" = Conj(Id),
-        "+.c" = Addc([Id; 2]),
-        "-.c" = Subc([Id; 2]),
-        "neg.c" = Negc(Id),
-        "/.c" = Divc([Id; 2]),
-        "*.c" = Mulc([Id; 2]),
+        // binary64
 
-        // parameterized Herbie: binary64
         "<.f64" = Lessf64([Id; 2]),
         ">.f64" = Greaterf64([Id; 2]),
         "<=.f64" = LessEqf64([Id; 2]),
@@ -140,7 +132,8 @@ define_language! {
         "expm1.f64" = Expm1f64(Id),
         "hypot.f64" = Hypotf64([Id; 2]),
 
-        // parameterized Herbie: binary32
+        // binary32 
+
         "<.f32" = Lessf32([Id; 2]),
         ">.f32" = Greaterf32([Id; 2]),
         "<=.f32" = LessEqf32([Id; 2]),
@@ -195,20 +188,80 @@ define_language! {
         "expm1.f32" = Expm1f32(Id),
         "hypot.f32" = Hypotf32([Id; 2]),
 
-        // parameterized Herbie: posit16
-        "+.p16" = Addp16([Id; 2]),
-        "-.p16" = Subp16([Id; 2]),
-        "*.p16" = Mulp16([Id; 2]),
-        "/.p16" = Divp16([Id; 2]),
-        "neg.p16" = Negp16(Id),
-        "sqrt.p16" = Sqrtp16(Id),
+        // Complex numbers
 
+        "re" = Re(Id),
+        "im" = Im(Id),
+        "complex" = Complex([Id; 2]),
+        "conj" = Conj(Id),
+        "+.c" = Addc([Id; 2]),
+        "-.c" = Subc([Id; 2]),
+        "neg.c" = Negc(Id),
+        "/.c" = Divc([Id; 2]),
+        "*.c" = Mulc([Id; 2]),
+
+        // 8-bit posit numbers
+
+        "+.p8" = Posit8Add([Id; 2]),
+        "neg.p8" = Posit8Neg(Id),
+        "-.p8" = Posit8Sub([Id; 2]),
+        "*.p8" = Posit8Mul([Id; 2]),
+        "/.p8" = Posit8Div([Id; 2]),
+        "sqrt.p8" = Posit8Sqrt(Id),
+        "<.p8" = Posit8Lt([Id; 2]),
+        ">.p8" = Posit8Gt([Id; 2]),
+        "<=.p8" = Posit8Lte([Id; 2]),
+        ">=.p8" = Posit8Gte([Id; 2]),
+        "real->posit8" = RealToPosit8(Id),
+        "posit8->real" = Posit8ToReal(Id),
+        "real->quire8" = RealToQuire8(Id),
+        "quire8->real" = Quire8ToReal(Id),
+        "quire8-mul-add" = Quire8MulAdd([Id; 3]),
+        "quire8-mul-sub" = Quire8MulSub([Id; 3]),
+        "posit8->quire8" = Posit8ToQuire8(Id),
+        "quire8->posit8" = Quire8ToPosit8(Id),
+
+        // 16-bit posit numbers
+
+        "+.p16" = Posit16Add([Id; 2]),
+        "neg.p16" = Posit16Neg(Id),
+        "-.p16" = Posit16Sub([Id; 2]),
+        "*.p16" = Posit16Mul([Id; 2]),
+        "/.p16" = Posit16Div([Id; 2]),
+        "sqrt.p16" = Posit16Sqrt(Id),
+        "<.p16" = Posit16Lt([Id; 2]),
+        ">.p16" = Posit16Gt([Id; 2]),
+        "<=.p16" = Posit16Lte([Id; 2]),
+        ">=.p16" = Posit16Gte([Id; 2]),
         "real->posit16" = RealToPosit16(Id),
         "posit16->real" = Posit16ToReal(Id),
-        "quire16->posit16" = Quire16ToPosit16(Id),
-        "posit16->quire16" = Posit16ToQuire16(Id),
+        "real->quire16" = RealToQuire16(Id),
+        "quire16->real" = Quire16ToReal(Id),
         "quire16-mul-add" = Quire16MulAdd([Id; 3]),
         "quire16-mul-sub" = Quire16MulSub([Id; 3]),
+        "posit16->quire16" = Posit16ToQuire16(Id),
+        "quire16->posit16" = Quire16ToPosit16(Id),
+
+        // 32-bit posit numbers
+
+        "+.p32" = Posit32Add([Id; 2]),
+        "neg.p32" = Posit32Neg(Id),
+        "-.p32" = Posit32Sub([Id; 2]),
+        "*.p32" = Posit32Mul([Id; 2]),
+        "/.p32" = Posit32Div([Id; 2]),
+        "sqrt.p32" = Posit32Sqrt(Id),
+        "<.p32" = Posit32Lt([Id; 2]),
+        ">.p32" = Posit32Gt([Id; 2]),
+        "<=.p32" = Posit32Lte([Id; 2]),
+        ">=.p32" = Posit32Gte([Id; 2]),
+        "real->posit32" = RealToPosit32(Id),
+        "posit32->real" = Posit32ToReal(Id),
+        "real->quire32" = RealToQuire32(Id),
+        "quire32->real" = Quire32ToReal(Id),
+        "quire32-mul-add" = Quire32MulAdd([Id; 3]),
+        "quire32-mul-sub" = Quire32MulSub([Id; 3]),
+        "posit32->quire32" = Posit32ToQuire32(Id),
+        "quire32->posit32" = Quire32ToPosit32(Id),
         
         Constant(Constant),
         Variable(egg::Symbol),
@@ -216,6 +269,7 @@ define_language! {
 }
 
 pub struct ConstantFold {
+    pub unsound: AtomicBool,
     pub constant_fold: bool,
     pub prune: bool,
 }
@@ -225,6 +279,7 @@ impl Default for ConstantFold {
         Self {
             constant_fold: true,
             prune: true,
+            unsound: AtomicBool::from(false),
         }
     }
 }
@@ -324,11 +379,21 @@ impl Analysis<Math> for ConstantFold {
     }
 
     fn merge(&self, to: &mut Self::Data, from: Self::Data) -> bool {
-        if to.is_none() && from.is_some() {
-            *to = from;
-            true
-        } else {
-            false
+        match (&to, from) {
+            (None, None) => false,
+            (Some(_), None) => false, // no update needed
+            (None, Some(c)) => {
+                *to = Some(c);
+                true
+            }
+            (Some(a), Some(ref b)) => {
+                if a != b {
+                    if !self.unsound.swap(true, Ordering::SeqCst) {
+                        log::warn!("Bad merge detected: {} != {}", a, b);
+                    }
+                }
+                false
+            }
         }
     }
 
