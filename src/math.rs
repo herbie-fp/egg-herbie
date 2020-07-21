@@ -46,17 +46,10 @@ define_language! {
         // FPCore constants
         "TRUE" = True,
         "FALSE" = False,
-        "LOG2E" = Log2E,
-        "LOG10E" = Log10E,
-        "LN2" = Ln2,
-        "LN10" = Ln10,
-        "PI_2" = Pi2,
-        "PI_4" = Pi4,
-        "1_PI" = Pi1Alt,
-        "2_PI" = Pi2Alt,
-        "2_SQRTPI" = Sqrtpi2,
-        "SQRT2" = Sqrt2,
-        "SQRT1_2" = Sqrt1_2,
+        "E" = E,
+        "PI" = Pi,
+        "INFINITY" = Infinity,
+        "NAN" = Nan,
 
         // parameterized constants: binary64
         "E.f64" = Ef64,
@@ -75,6 +68,62 @@ define_language! {
         "not" = Not(Id),
         "and" = And([Id; 2]),
         "or" = Or([Id; 2]),
+
+        // unparameterized, (Herbie <=1.4)
+
+        "<" = Less([Id; 2]),
+        ">" = Greater([Id; 2]),
+        "<=" = LessEq([Id; 2]),
+        ">=" = GreaterEq([Id; 2]),
+
+        "erf" = Erf(Id),
+        "erfc" = Erfc(Id),
+        "tgamma" = Tgamma(Id),
+        "lgamma" = Lgamma(Id),
+        "ceil" = Ceil(Id),
+        "floor" = Floor(Id),
+        "fmod" = Fmod([Id; 2]),
+        "remainder" = Remainder([Id; 2]),
+        "fmax" = Fmax([Id; 2]),
+        "fmin" = Fmin([Id; 2]),
+        "fdim" = Fdim([Id; 2]),
+        "copysign" = Copysign(Id),
+        "trunc" = Trunc(Id),
+        "round" = Round(Id),
+        "nearbyint" = NearbyInt(Id),
+
+        "+" = Add([Id; 2]),
+        "-" = Sub([Id; 2]),
+        "*" = Mul([Id; 2]),
+        "/" = Div([Id; 2]),
+        "pow" = Pow([Id; 2]),
+        "neg" = Neg(Id),
+        "exp" = Exp(Id),
+        "exp2" = Exp2(Id),
+        "log" = Log(Id),
+        "sqrt" = Sqrt(Id),
+        "cbrt" = Cbrt(Id),
+        "fabs" = Fabs(Id),
+        "sin" = Sin(Id),
+        "cos" = Cos(Id),
+        "tan" = Tan(Id),
+        "asin" = Asin(Id),
+        "acos" = Acos(Id),
+        "atan" = Atan(Id),
+        "atan2" = Atan2([Id; 2]),
+        "sinh" = Sinh(Id),
+        "cosh" = Cosh(Id),
+        "tanh" = Tanh(Id),
+        "asinh" = Asinh(Id),
+        "acosh" = Acosh(Id),
+        "atanh" = Atanh(Id),
+
+        "fma" = Fma([Id; 3]),
+        "log1p" = Log1p(Id),
+        "log10" = Log10(Id),
+        "log2" = Log2(Id),
+        "expm1" = Expm1(Id),
+        "hypot" = Hypot([Id; 2]),
 
         // binary64
 
@@ -294,6 +343,45 @@ impl Analysis<Math> for ConstantFold {
         let x = |id: &Id| egraph[*id].data.as_ref();
         match enode {
             Math::Constant(c) => Some(c.clone()),
+
+            // real
+            Math::Add([a, b]) => Some(x(a)? + x(b)?),
+            Math::Sub([a, b]) => Some(x(a)? - x(b)?),
+            Math::Mul([a, b]) => Some(x(a)? * x(b)?),
+            Math::Div([a, b]) => {
+                if x(b)?.is_zero() {
+                    None
+                } else {
+                    Some(x(a)? / x(b)?)
+                }
+            }
+            Math::Neg(a) => Some(-x(a)?.clone()),
+            Math::Pow([a, b]) => {
+                if x(b)?.is_integer() {
+                    Some(Pow::pow(x(a)?, x(b)?.to_integer()))
+                } else {
+                    None
+                }
+            }
+            Math::Sqrt(a) => {
+                let a = x(a)?;
+                if *a.numer() > BigInt::from(0) && *a.denom() > BigInt::from(0) {
+                    let s1 = a.numer().sqrt();
+                    let s2 = a.denom().sqrt();
+                    let is_perfect = &(&s1 * &s1) == a.numer() && &(&s2 * &s2) == a.denom();
+                    if is_perfect {
+                        Some(Ratio::new(s1, s2))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }
+            Math::Fabs(a) => Some(x(a)?.clone().abs()),
+            Math::Floor(a) => Some(x(a)?.floor()),
+            Math::Ceil(a) => Some(x(a)?.ceil()),
+            Math::Round(a) => Some(x(a)?.round()),
 
             // binary64
             Math::Addf64([a, b]) => Some(x(a)? + x(b)?),
