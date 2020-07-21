@@ -10,5 +10,5 @@ egg/data/
 default.nix
 
 # Racket
-.zo
-.dep
+*.zo
+*.dep
