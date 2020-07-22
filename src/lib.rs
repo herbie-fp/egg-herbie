@@ -1,4 +1,5 @@
 #![recursion_limit = "500"]
+
 pub mod math;
 pub mod rules;
 
@@ -186,7 +187,6 @@ fn find_extracted(runner: &Runner, id: u32) -> &Extracted {
         .find(|(i, _)| runner.egraph.find(*i) == id)
         .map(|(_, ext)| ext)
         .expect("Couldn't find matching extraction!")
-        .clone()
 }
 
 #[no_mangle]

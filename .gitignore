@@ -8,3 +8,7 @@ egg/data/
 # nix stuff
 .envrc
 default.nix
+
+# Racket
+*.zo
+*.dep

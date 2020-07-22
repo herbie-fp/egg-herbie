@@ -42,24 +42,26 @@ impl IterationData<Math, ConstantFold> for IterData {
 // operators from FPCore
 define_language! {
     pub enum Math {
-        // special FP constants
+
+        // FPCore constants
         "TRUE" = True,
         "FALSE" = False,
         "E" = E,
-        "LOG2E" = Log2E,
-        "LOG10E" = Log10E,
-        "LN2" = Ln2,
-        "LN10" = Ln10,
         "PI" = Pi,
-        "PI_2" = Pi2,
-        "PI_4" = Pi4,
-        "1_PI" = Pi1Alt,
-        "2_PI" = Pi2Alt,
-        "2_SQRTPI" = Sqrtpi2,
-        "SQRT2" = Sqrt2,
-        "SQRT1_2" = Sqrt1_2,
         "INFINITY" = Infinity,
         "NAN" = Nan,
+
+        // parameterized constants: binary64
+        "E.f64" = Ef64,
+        "PI.f64" = Pif64,
+        "INFINITY.f64" = Infinityf64,
+        "NAN.f64" = Nanf64,
+
+        // parameterized constants: binary32
+        "E.f32" = Ef32,
+        "PI.f32" = Pif32,
+        "INFINITY.f32" = Infinityf32,
+        "NAN.f32" = Nanf32,
 
         // logical operators
         "if" = If([Id; 3]),
@@ -67,13 +69,13 @@ define_language! {
         "and" = And([Id; 2]),
         "or" = Or([Id; 2]),
 
-        // comparison
+        // unparameterized, (Herbie <=1.4)
+
         "<" = Less([Id; 2]),
         ">" = Greater([Id; 2]),
         "<=" = LessEq([Id; 2]),
         ">=" = GreaterEq([Id; 2]),
 
-        // FPCore operations
         "erf" = Erf(Id),
         "erfc" = Erfc(Id),
         "tgamma" = Tgamma(Id),
@@ -123,21 +125,129 @@ define_language! {
         "expm1" = Expm1(Id),
         "hypot" = Hypot([Id; 2]),
 
+        // binary64
+
+        "<.f64" = Lessf64([Id; 2]),
+        ">.f64" = Greaterf64([Id; 2]),
+        "<=.f64" = LessEqf64([Id; 2]),
+        ">=.f64" = GreaterEqf64([Id; 2]),
+
+        "erf.f64" = Erff64(Id),
+        "erfc.f64" = Erfcf64(Id),
+        "tgamma.f64" = Tgammaf64(Id),
+        "lgamma.f64" = Lgammaf64(Id),
+        "ceil.f64" = Ceilf64(Id),
+        "floor.f64" = Floorf64(Id),
+        "fmod.f64" = Fmodf64([Id; 2]),
+        "remainder.f64" = Remainderf64([Id; 2]),
+        "fmax.f64" = Fmaxf64([Id; 2]),
+        "fmin.f64" = Fminf64([Id; 2]),
+        "fdim.f64" = Fdimf64([Id; 2]),
+        "copysign.f64" = Copysignf64(Id),
+        "trunc.f64" = Truncf64(Id),
+        "round.f64" = Roundf64(Id),
+        "nearbyint.f64" = NearbyIntf64(Id),
+
+        "+.f64" = Addf64([Id; 2]),
+        "-.f64" = Subf64([Id; 2]),
+        "*.f64" = Mulf64([Id; 2]),
+        "/.f64" = Divf64([Id; 2]),
+        "pow.f64" = Powf64([Id; 2]),
+        "neg.f64" = Negf64(Id),
+        "exp.f64" = Expf64(Id),
+        "exp2.f64" = Exp2f64(Id),
+        "log.f64" = Logf64(Id),
+        "sqrt.f64" = Sqrtf64(Id),
+        "cbrt.f64" = Cbrtf64(Id),
+        "fabs.f64" = Fabsf64(Id),
+        "sin.f64" = Sinf64(Id),
+        "cos.f64" = Cosf64(Id),
+        "tan.f64" = Tanf64(Id),
+        "asin.f64" = Asinf64(Id),
+        "acos.f64" = Acosf64(Id),
+        "atan.f64" = Atanf64(Id),
+        "atan2.f64" = Atan2f64([Id; 2]),
+        "sinh.f64" = Sinhf64(Id),
+        "cosh.f64" = Coshf64(Id),
+        "tanh.f64" = Tanhf64(Id),
+        "asinh.f64" = Asinhf64(Id),
+        "acosh.f64" = Acoshf64(Id),
+        "atanh.f64" = Atanhf64(Id),
+
+        "fma.f64" = Fmaf64([Id; 3]),
+        "log1p.f64" = Log1pf64(Id),
+        "log10.f64" = Log10f64(Id),
+        "log2.f64" = Log2f64(Id),
+        "expm1.f64" = Expm1f64(Id),
+        "hypot.f64" = Hypotf64([Id; 2]),
+
+        // binary32
+
+        "<.f32" = Lessf32([Id; 2]),
+        ">.f32" = Greaterf32([Id; 2]),
+        "<=.f32" = LessEqf32([Id; 2]),
+        ">=.f32" = GreaterEqf32([Id; 2]),
+
+        "erf.f32" = Erff32(Id),
+        "erfc.f32" = Erfcf32(Id),
+        "tgamma.f32" = Tgammaf32(Id),
+        "lgamma.f32" = Lgammaf32(Id),
+        "ceil.f32" = Ceilf32(Id),
+        "floor.f32" = Floorf32(Id),
+        "fmod.f32" = Fmodf32([Id; 2]),
+        "remainder.f32" = Remainderf32([Id; 2]),
+        "fmax.f32" = Fmaxf32([Id; 2]),
+        "fmin.f32" = Fminf32([Id; 2]),
+        "fdim.f32" = Fdimf32([Id; 2]),
+        "copysign.f32" = Copysignf32(Id),
+        "trunc.f32" = Truncf32(Id),
+        "round.f32" = Roundf32(Id),
+        "nearbyint.f32" = NearbyIntf32(Id),
+
+        "+.f32" = Addf32([Id; 2]),
+        "-.f32" = Subf32([Id; 2]),
+        "*.f32" = Mulf32([Id; 2]),
+        "/.f32" = Divf32([Id; 2]),
+        "pow.f32" = Powf32([Id; 2]),
+        "neg.f32" = Negf32(Id),
+        "exp.f32" = Expf32(Id),
+        "exp2.f32" = Exp2f32(Id),
+        "log.f32" = Logf32(Id),
+        "sqrt.f32" = Sqrtf32(Id),
+        "cbrt.f32" = Cbrtf32(Id),
+        "fabs.f32" = Fabsf32(Id),
+        "sin.f32" = Sinf32(Id),
+        "cos.f32" = Cosf32(Id),
+        "tan.f32" = Tanf32(Id),
+        "asin.f32" = Asinf32(Id),
+        "acos.f32" = Acosf32(Id),
+        "atan.f32" = Atanf32(Id),
+        "atan2.f32" = Atan2f32([Id; 2]),
+        "sinh.f32" = Sinhf32(Id),
+        "cosh.f32" = Coshf32(Id),
+        "tanh.f32" = Tanhf32(Id),
+        "asinh.f32" = Asinhf32(Id),
+        "acosh.f32" = Acoshf32(Id),
+        "atanh.f32" = Atanhf32(Id),
+
+        "fma.f32" = Fmaf32([Id; 3]),
+        "log1p.f32" = Log1pf32(Id),
+        "log10.f32" = Log10f32(Id),
+        "log2.f32" = Log2f32(Id),
+        "expm1.f32" = Expm1f32(Id),
+        "hypot.f32" = Hypotf32([Id; 2]),
+
         // Complex numbers
 
-        "+.c" = Addc([Id; 2]),
-        "neg.c" = Negc(Id),
-        "-.c" = Subc([Id; 2]),
-        "*.c" = Mulc([Id; 2]),
-        "/.c" = Divc([Id; 2]),
-        "exp.c" = Expc(Id),
-        "log.c" = Logc(Id),
-        "pow.c" = Powc([Id; 2]),
-        "sqrt.c" = Sqrtc(Id),
-        "complex" = Complex([Id; 2]),
         "re" = Re(Id),
         "im" = Im(Id),
+        "complex" = Complex([Id; 2]),
         "conj" = Conj(Id),
+        "+.c" = Addc([Id; 2]),
+        "-.c" = Subc([Id; 2]),
+        "neg.c" = Negc(Id),
+        "/.c" = Divc([Id; 2]),
+        "*.c" = Mulc([Id; 2]),
 
         // 8-bit posit numbers
 
@@ -151,10 +261,10 @@ define_language! {
         ">.p8" = Posit8Gt([Id; 2]),
         "<=.p8" = Posit8Lte([Id; 2]),
         ">=.p8" = Posit8Gte([Id; 2]),
-        "real->posit8" = RealToPosit8(Id),
-        "posit8->real" = Posit8ToReal(Id),
-        "real->quire8" = RealToQuire8(Id),
-        "quire8->real" = Quire8ToReal(Id),
+        "binary64->posit8" = F64ToPosit8(Id),
+        "posit8->binary64" = Posit8ToF64(Id),
+        "binary64->quire8" = F64ToQuire8(Id),
+        "quire8->binary64" = Quire8ToF64(Id),
         "quire8-mul-add" = Quire8MulAdd([Id; 3]),
         "quire8-mul-sub" = Quire8MulSub([Id; 3]),
         "posit8->quire8" = Posit8ToQuire8(Id),
@@ -172,10 +282,10 @@ define_language! {
         ">.p16" = Posit16Gt([Id; 2]),
         "<=.p16" = Posit16Lte([Id; 2]),
         ">=.p16" = Posit16Gte([Id; 2]),
-        "real->posit16" = RealToPosit16(Id),
-        "posit16->real" = Posit16ToReal(Id),
-        "real->quire16" = RealToQuire16(Id),
-        "quire16->real" = Quire16ToReal(Id),
+        "binary64->posit16" = F64ToPosit16(Id),
+        "posit16->binary64" = Posit16ToF64(Id),
+        "binary64->quire16" = F64ToQuire16(Id),
+        "quire16->binary64" = Quire16ToF64(Id),
         "quire16-mul-add" = Quire16MulAdd([Id; 3]),
         "quire16-mul-sub" = Quire16MulSub([Id; 3]),
         "posit16->quire16" = Posit16ToQuire16(Id),
@@ -193,10 +303,10 @@ define_language! {
         ">.p32" = Posit32Gt([Id; 2]),
         "<=.p32" = Posit32Lte([Id; 2]),
         ">=.p32" = Posit32Gte([Id; 2]),
-        "real->posit32" = RealToPosit32(Id),
-        "posit32->real" = Posit32ToReal(Id),
-        "real->quire32" = RealToQuire32(Id),
-        "quire32->real" = Quire32ToReal(Id),
+        "binary64->posit32" = F64ToPosit32(Id),
+        "posit32->binary64" = Posit32ToF64(Id),
+        "binary64->quire32" = F64ToQuire32(Id),
+        "quire32->binary64" = Quire32ToF64(Id),
         "quire32-mul-add" = Quire32MulAdd([Id; 3]),
         "quire32-mul-sub" = Quire32MulSub([Id; 3]),
         "posit32->quire32" = Posit32ToQuire32(Id),
@@ -233,6 +343,8 @@ impl Analysis<Math> for ConstantFold {
         let x = |id: &Id| egraph[*id].data.as_ref();
         match enode {
             Math::Constant(c) => Some(c.clone()),
+
+            // real
             Math::Add([a, b]) => Some(x(a)? + x(b)?),
             Math::Sub([a, b]) => Some(x(a)? - x(b)?),
             Math::Mul([a, b]) => Some(x(a)? * x(b)?),
@@ -245,7 +357,7 @@ impl Analysis<Math> for ConstantFold {
             }
             Math::Neg(a) => Some(-x(a)?.clone()),
             Math::Pow([a, b]) => {
-                if x(b)?.is_integer() && (!x(a)?.is_zero() || x(b)? > &Ratio::zero()) {
+                if x(b)?.is_integer() {
                     Some(Pow::pow(x(a)?, x(b)?.to_integer()))
                 } else {
                     None
@@ -270,6 +382,85 @@ impl Analysis<Math> for ConstantFold {
             Math::Floor(a) => Some(x(a)?.floor()),
             Math::Ceil(a) => Some(x(a)?.ceil()),
             Math::Round(a) => Some(x(a)?.round()),
+
+            // binary64
+            Math::Addf64([a, b]) => Some(x(a)? + x(b)?),
+            Math::Subf64([a, b]) => Some(x(a)? - x(b)?),
+            Math::Mulf64([a, b]) => Some(x(a)? * x(b)?),
+            Math::Divf64([a, b]) => {
+                if x(b)?.is_zero() {
+                    None
+                } else {
+                    Some(x(a)? / x(b)?)
+                }
+            }
+            Math::Negf64(a) => Some(-x(a)?.clone()),
+            Math::Powf64([a, b]) => {
+                if x(b)?.is_integer() {
+                    Some(Pow::pow(x(a)?, x(b)?.to_integer()))
+                } else {
+                    None
+                }
+            }
+            Math::Sqrtf64(a) => {
+                let a = x(a)?;
+                if *a.numer() > BigInt::from(0) && *a.denom() > BigInt::from(0) {
+                    let s1 = a.numer().sqrt();
+                    let s2 = a.denom().sqrt();
+                    let is_perfect = &(&s1 * &s1) == a.numer() && &(&s2 * &s2) == a.denom();
+                    if is_perfect {
+                        Some(Ratio::new(s1, s2))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }
+            Math::Fabsf64(a) => Some(x(a)?.clone().abs()),
+            Math::Floorf64(a) => Some(x(a)?.floor()),
+            Math::Ceilf64(a) => Some(x(a)?.ceil()),
+            Math::Roundf64(a) => Some(x(a)?.round()),
+
+            // binary32
+            Math::Addf32([a, b]) => Some(x(a)? + x(b)?),
+            Math::Subf32([a, b]) => Some(x(a)? - x(b)?),
+            Math::Mulf32([a, b]) => Some(x(a)? * x(b)?),
+            Math::Divf32([a, b]) => {
+                if x(b)?.is_zero() {
+                    None
+                } else {
+                    Some(x(a)? / x(b)?)
+                }
+            }
+            Math::Negf32(a) => Some(-x(a)?.clone()),
+            Math::Powf32([a, b]) => {
+                if x(b)?.is_integer() {
+                    Some(Pow::pow(x(a)?, x(b)?.to_integer()))
+                } else {
+                    None
+                }
+            }
+            Math::Sqrtf32(a) => {
+                let a = x(a)?;
+                if *a.numer() > BigInt::from(0) && *a.denom() > BigInt::from(0) {
+                    let s1 = a.numer().sqrt();
+                    let s2 = a.denom().sqrt();
+                    let is_perfect = &(&s1 * &s1) == a.numer() && &(&s2 * &s2) == a.denom();
+                    if is_perfect {
+                        Some(Ratio::new(s1, s2))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }
+            Math::Fabsf32(a) => Some(x(a)?.clone().abs()),
+            Math::Floorf32(a) => Some(x(a)?.floor()),
+            Math::Ceilf32(a) => Some(x(a)?.ceil()),
+            Math::Roundf32(a) => Some(x(a)?.round()),
+
             // Math::RealToPosit(a) => result(x(0)?),
             _ => None,
         }
