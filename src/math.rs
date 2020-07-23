@@ -239,15 +239,19 @@ define_language! {
 
         // Complex numbers
 
+        "+.c" = Addc([Id; 2]),
+        "neg.c" = Negc(Id),
+        "-.c" = Subc([Id; 2]),
+        "*.c" = Mulc([Id; 2]),
+        "/.c" = Divc([Id; 2]),
+        "exp.c" = Expc(Id),
+        "log.c" = Logc(Id),
+        "pow.c" = Powc([Id; 2]),
+        "sqrt.c" = Sqrtc(Id),
+        "complex" = Complex([Id; 2]),
         "re" = Re(Id),
         "im" = Im(Id),
-        "complex" = Complex([Id; 2]),
         "conj" = Conj(Id),
-        "+.c" = Addc([Id; 2]),
-        "-.c" = Subc([Id; 2]),
-        "neg.c" = Negc(Id),
-        "/.c" = Divc([Id; 2]),
-        "*.c" = Mulc([Id; 2]),
 
         // 8-bit posit numbers
 
