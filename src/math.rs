@@ -43,43 +43,7 @@ impl IterationData<Math, ConstantFold> for IterData {
 define_language! {
     pub enum Math {
 
-        // FPCore constants
-        "TRUE" = True(Id),
-        "FALSE" = False(Id),
-        "E" = E(Id),
-        "PI" = Pi(Id),
-        "INFINITY" = Infinity(Id),
-        "NAN" = Nan(Id),
-
-        // operators
-
-        "if" = If([Id; 4]),
-        "not" = Not([Id; 2]),
-        "and" = And([Id; 3]),
-        "or" = Or([Id; 3]),
-
-        "==" = Equal([Id; 3]),
-        "!=" = NotEqual([Id; 3]),
-        "<" = Less([Id; 3]),
-        ">" = Greater([Id; 3]),
-        "<=" = LessEq([Id; 3]),
-        ">=" = GreaterEq([Id; 3]),
-
-        "erf" = Erf([Id; 2]),
-        "erfc" = Erfc([Id; 2]),
-        "tgamma" = Tgamma([Id; 2]),
-        "lgamma" = Lgamma([Id; 2]),
-        "ceil" = Ceil([Id; 2]),
-        "floor" = Floor([Id; 2]),
-        "fmod" = Fmod([Id; 3]),
-        "remainder" = Remainder([Id; 3]),
-        "fmax" = Fmax([Id; 3]),
-        "fmin" = Fmin([Id; 3]),
-        "fdim" = Fdim([Id; 3]),
-        "copysign" = Copysign([Id; 2]),
-        "trunc" = Trunc([Id; 2]),
-        "round" = Round([Id; 2]),
-        "nearbyint" = NearbyInt([Id; 2]),
+        // constant-folding operators
 
         "+" = Add([Id; 3]),
         "-" = Sub([Id; 3]),
@@ -87,81 +51,11 @@ define_language! {
         "/" = Div([Id; 3]),
         "pow" = Pow([Id; 3]),
         "neg" = Neg([Id; 2]),
-        "exp" = Exp([Id; 2]),
-        "exp2" = Exp2([Id; 2]),
-        "log" = Log([Id; 2]),
         "sqrt" = Sqrt([Id; 2]),
-        "cbrt" = Cbrt([Id; 2]),
         "fabs" = Fabs([Id; 2]),
-        "sin" = Sin([Id; 2]),
-        "cos" = Cos([Id; 2]),
-        "tan" = Tan([Id; 2]),
-        "asin" = Asin([Id; 2]),
-        "acos" = Acos([Id; 2]),
-        "atan" = Atan([Id; 2]),
-        "atan2" = Atan2([Id; 3]),
-        "sinh" = Sinh([Id; 2]),
-        "cosh" = Cosh([Id; 2]),
-        "tanh" = Tanh([Id; 2]),
-        "asinh" = Asinh([Id; 2]),
-        "acosh" = Acosh([Id; 2]),
-        "atanh" = Atanh([Id; 2]),
-
-        "fma" = Fma([Id; 4]),
-        "log1p" = Log1p([Id; 2]),
-        "log10" = Log10([Id; 2]),
-        "log2" = Log2([Id; 2]),
-        "expm1" = Expm1([Id; 2]),
-        "hypot" = Hypot([Id; 3]),
-
-        // Complex numbers
-
-        "complex" = Complex([Id; 3]),
-        "re" = Re([Id; 2]),
-        "im" = Im([Id; 2]),
-        "conj" = Conj([Id; 2]),
-
-        // 8-bit posit numbers
-
-        // "binary64->posit8" = F64ToPosit8(Id),
-        // "posit8->binary64" = Posit8ToF64(Id),
-        // "binary64->quire8" = F64ToQuire8(Id),
-        // "quire8->binary64" = Quire8ToF64(Id),
-        // "quire8-mul-add" = Quire8MulAdd([Id; 3]),
-        // "quire8-mul-sub" = Quire8MulSub([Id; 3]),
-        // "posit8->quire8" = Posit8ToQuire8(Id),
-        // "quire8->posit8" = Quire8ToPosit8(Id),
-
-        // 16-bit posit numbers
-
-        // "binary64->posit16" = F64ToPosit16(Id),
-        // "posit16->binary64" = Posit16ToF64(Id),
-        // "binary64->quire16" = F64ToQuire16(Id),
-        // "quire16->binary64" = Quire16ToF64(Id),
-        // "quire16-mul-add" = Quire16MulAdd([Id; 3]),
-        // "quire16-mul-sub" = Quire16MulSub([Id; 3]),
-        // "posit16->quire16" = Posit16ToQuire16(Id),
-        // "quire16->posit16" = Quire16ToPosit16(Id),
-
-        // 32-bit posit numbers
-
-        // "binary64->posit32" = F64ToPosit32(Id),
-        // "posit32->binary64" = Posit32ToF64(Id),
-        // "binary64->quire32" = F64ToQuire32(Id),
-        // "quire32->binary64" = Quire32ToF64(Id),
-        // "quire32-mul-add" = Quire32MulAdd([Id; 3]),
-        // "quire32-mul-sub" = Quire32MulSub([Id; 3]),
-        // "posit32->quire32" = Posit32ToQuire32(Id),
-        // "quire32->posit32" = Quire32ToPosit32(Id),
-
-        // Integer
-
-        // "remainder.i32" = RemainderInt64([Id; 2]),
-        // "shl.i32" = ShlInt64([Id; 2]),
-        // "shr.i32" = ShrInt64([Id; 2]),
-        // "and.i32" = AndInt64([Id; 2]),
-        // "or.i32" = OrInt64([Id; 2]),
-        // "xor.i32" = XorInt64([Id; 2]),
+        "ceil" = Ceil([Id; 2]),
+        "floor" = Floor([Id; 2]),
+        "round" = Round([Id; 2]),
 
         Constant(Constant),
         Symbol(egg::Symbol),
@@ -235,7 +129,6 @@ impl Analysis<Math> for ConstantFold {
             Math::Ceil([_p, a]) => Some(x(a)?.ceil()),
             Math::Round([_p, a]) => Some(x(a)?.round()),
 
-            // Math::RealToPosit(a) => result(x(0)?),
             _ => None,
         }
     }
