@@ -74,11 +74,16 @@
 
 (define (egg-parsed->expr parsed rename-dict)
   (match parsed
-    [(list first-parsed rest-parsed ...)
-     (cons
-      first-parsed
-      (for/list ([expr rest-parsed])
-        (egg-parsed->expr expr rename-dict)))]
+    [(list first-parsed second-parsed rest-parsed ...)
+     (if (constant? first-parsed)
+         (if (equal? second-parsed 'real)  ; parametrized constants
+               first-parsed
+               (string->symbol (string-append (~s first-parsed) "." (~s second-parsed))))
+         (cons                             ; parameterized operators
+           (if (equal? second-parsed 'real)
+               first-parsed
+               (string->symbol (string-append (~s first-parsed) "." (~s second-parsed))))
+           (map (curryr egg-parsed->expr rename-dict) rest-parsed)))]
     [(or (? number?) (? constant?))
      parsed]
     [else
@@ -94,8 +99,8 @@
   (cond
     [(list? expr)
      (string-join
-      (cons
-       (symbol->string (first expr))
+      (append
+       (extract-operator (first expr))
        (map (lambda (e) (expr->egg-expr-helper e egg->herbie-dict herbie->egg-dict))
             (rest expr)))
       " "
