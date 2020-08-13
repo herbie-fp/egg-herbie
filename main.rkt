@@ -164,10 +164,10 @@
 (module+ test
 
   (define test-exprs
-    (list (cons '(+ y x) "(+ h0 h1)")
-          (cons '(+ x y) "(+ h1 h0)")
-          (cons '(- 2 (+ x y)) "(- 2 (+ h1 h0))")
-          (cons '(- z (+ (+ y 2) x)) "(- h2 (+ (+ h0 2) h1))")))
+    (list (cons '(+ y x) "(+ real h0 h1)")
+          (cons '(+ x y) "(+ real h1 h0)")
+          (cons '(- 2 (+ x y)) "(- real 2 (+ real h1 h0))")
+          (cons '(- z (+ (+ y 2) x)) "(- real h2 (+ real (+ real h0 2) h1))")))
   
   (define outputs
    (egraph-run
