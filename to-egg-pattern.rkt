@@ -16,16 +16,18 @@
   (set-member? constants x))
 
 (define (extract-operator op)
-  (define str (symbol->string op))
-  (match (regexp-match #px"([^\\s^\\.]+)\\.([^\\s]+)" str)
-    [(list _ op* prec)  (list op* prec)]
-    [#f (list (symbol->string op) "real")]))
+  (if (symbol? op)
+      (match (regexp-match #px"([^\\s^\\.]+)\\.([^\\s]+)" (~s op))
+        [(list _ op* prec)  (list op* prec)]
+        [#f (list (~s op) "real")])
+      #f))
 
 (define (extract-symbol sym)
-  (define str (symbol->string sym))
-  (match (regexp-match #px"([^\\s^\\.]+)\\.([^\\s]+)" str)
-    [(list _ constant prec) (~a (list constant prec))]
-    [#f (format (if (constant? sym) "(~a real)" "?~a") sym)]))
+  (if (symbol? sym)
+      (match (regexp-match #px"([^\\s^\\.]+)\\.([^\\s]+)" (~s sym))
+        [(list _ constant prec) (~a (list constant prec))]
+        [#f (format (if (constant? sym) "(~a real)" "?~a") sym)])
+      #f))
 
 (define (to-egg-pattern datum)
   (cond
@@ -48,4 +50,5 @@
 (module+ test
   (check-equal? (to-egg-pattern `(+ a b)) "(+ real ?a ?b)")
   (check-equal? (to-egg-pattern `(/ c (- 2 a))) "(/ real ?c (- real 2 ?a))")
-  (check-equal? (to-egg-pattern `(cos.f64 PI.f64) "(cos f64 (PI f64))")))
+  (check-equal? (to-egg-pattern `(cos.f64 PI.f64)) "(cos f64 (PI f64))")
+  (check-equal? (to-egg-pattern `(if TRUE x y)) "(if real (TRUE real) ?x ?y)"))
