@@ -176,20 +176,20 @@
           (cons '(+ x y) "(+ real h1 h0)")
           (cons '(- 2 (+ x y)) "(- real 2 (+ real h1 h0))")
           (cons '(- z (+ (+ y 2) x)) "(- real h2 (+ real (+ real h0 2) h1))")
+          (cons '(*.f64 x y) "(* f64 h1 h0)")
+          (cons '(+.f32 (*.f32 x y) 2) "(+ f32 (* f32 h1 h0) 2)")
           (cons '(cos.f64 PI.f64) "(cos f64 (PI f64))")
           (cons '(if TRUE x y) "(if real (TRUE real) h1 h0)")))
-  
-  (define outputs
-   (egraph-run
-    (lambda (egg-graph)
+
+  (define nil
+    (egraph-run
+     (lambda (egg-graph)
       (for/list ([expr-pair test-exprs])
-        (expr->egg-expr (car expr-pair) egg-graph)))))
-  
-  (for ([expr-pair test-exprs]
-        [output outputs])
-    (check-equal? output (cdr expr-pair)))
-    
-  
+        (let* ([out (expr->egg-expr (car expr-pair) egg-graph)]
+               [inv (egg-expr->expr out egg-graph)])
+          (check-equal? out (cdr expr-pair))      ; check output against expected
+          (check-equal? inv (car expr-pair))))))) ; check if procedures are truly inverses
+
   (define extended-expr-list
     (list
      '(/ (- (exp x) (exp (- x))) 2)
