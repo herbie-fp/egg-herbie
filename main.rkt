@@ -89,6 +89,13 @@
     [else
      (hash-ref rename-dict parsed)]))
 
+(define (parameterized-constant? sym)
+  (if (symbol? sym)
+      (match (regexp-match #px"([^\\s^\\.]+)\\.([^\\s]+)" (~s sym))
+        [(list _ constant prec) #t]
+        [_ #f])
+      #f))
+
 ;; returns a pair of the string representing an egg expr, and updates the hash tables in the egraph
 (define (expr->egg-expr expr egg-data)
   (define egg->herbie-dict (egraph-data-egg->herbie-dict egg-data))
@@ -109,7 +116,9 @@
     [(and (number? expr) (exact? expr) (real? expr))
      (number->string expr)]
     [(constant? expr)
-     (symbol->string expr)]
+     (extract-symbol expr)]
+    [(parameterized-constant? expr)
+     (extract-symbol expr)]
     [(hash-has-key? herbie->egg-dict expr)
      (symbol->string (hash-ref herbie->egg-dict expr))]
     [else
@@ -123,7 +132,6 @@
                 new-key-symbol
                 expr)
       new-key]))
-
 
 (struct egg-add-exn exn:fail ())
 
@@ -167,7 +175,9 @@
     (list (cons '(+ y x) "(+ real h0 h1)")
           (cons '(+ x y) "(+ real h1 h0)")
           (cons '(- 2 (+ x y)) "(- real 2 (+ real h1 h0))")
-          (cons '(- z (+ (+ y 2) x)) "(- real h2 (+ real (+ real h0 2) h1))")))
+          (cons '(- z (+ (+ y 2) x)) "(- real h2 (+ real (+ real h0 2) h1))")
+          (cons '(cos.f64 PI.f64) "(cos f64 (PI f64))")
+          (cons '(if TRUE x y) "(if real (TRUE real) h1 h0)")))
   
   (define outputs
    (egraph-run
@@ -177,7 +187,7 @@
   
   (for ([expr-pair test-exprs]
         [output outputs])
-    (check-equal? (cdr expr-pair) output))
+    (check-equal? output (cdr expr-pair)))
     
   
   (define extended-expr-list
