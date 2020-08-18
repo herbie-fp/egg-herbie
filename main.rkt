@@ -75,11 +75,11 @@
 (define (egg-parsed->expr parsed rename-dict)
   (match parsed
     [(list first-parsed second-parsed rest-parsed ...)
-     (if (constant? first-parsed)
-         (if (equal? second-parsed 'real)  ; parametrized constants
+     (if (empty? rest-parsed) ; Assuming no nullary functions
+         (if (equal? second-parsed 'real)  ; parameterized constants: (name type) => name.type
                first-parsed
                (string->symbol (string-append (~s first-parsed) "." (~s second-parsed))))
-         (cons                             ; parameterized operators
+         (cons       ; parameterized operators: (name type args ...) => (name.type args ...)
            (if (equal? second-parsed 'real)
                first-parsed
                (string->symbol (string-append (~s first-parsed) "." (~s second-parsed))))
