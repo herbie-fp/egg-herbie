@@ -1,0 +1,11 @@
+D:\a\egg-herbie\egg-herbie\target\release\deps\libc-1cef407630f32dbc.rmeta: C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\lib.rs C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\macros.rs C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\fixed_width_ints.rs C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\windows\mod.rs C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\windows\msvc.rs
+
+D:\a\egg-herbie\egg-herbie\target\release\deps\liblibc-1cef407630f32dbc.rlib: C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\lib.rs C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\macros.rs C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\fixed_width_ints.rs C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\windows\mod.rs C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\windows\msvc.rs
+
+D:\a\egg-herbie\egg-herbie\target\release\deps\libc-1cef407630f32dbc.d: C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\lib.rs C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\macros.rs C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\fixed_width_ints.rs C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\windows\mod.rs C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\windows\msvc.rs
+
+C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\lib.rs:
+C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\macros.rs:
+C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\fixed_width_ints.rs:
+C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\windows\mod.rs:
+C:\Users\runneradmin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.74\src\windows\msvc.rs:
