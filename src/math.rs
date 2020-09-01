@@ -1,6 +1,7 @@
 use egg::*;
 
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::fmt::Display;
 
 use num_bigint::BigInt;
 use num_rational::Ratio;
@@ -57,6 +58,9 @@ define_language! {
         "floor" = Floor([Id; 2]),
         "round" = Round([Id; 2]),
 
+        "subst" = Subst([Id; 4]),
+        "d" = D([Id; 3]),
+
         Constant(Constant),
         Symbol(egg::Symbol),
         Other(egg::Symbol, Vec<Id>),
@@ -79,32 +83,75 @@ impl Default for ConstantFold {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum FoldData {
+    Const(Constant),
+    Var(Symbol),
+}
+
+impl Display for FoldData {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+        match *self {
+            FoldData::Const(ref c) => ::std::fmt::Display::fmt(c, f),
+            FoldData::Var(ref s) => ::std::fmt::Display::fmt(s, f),
+        }
+    }
+}
+
+fn is_constant_or_different_variable(egraph: &EGraph, cid: &Id, vid: &Id) -> bool {
+    let get = |id: &Id| egraph[*id].data.as_ref();
+    let d_in = match get(vid) {
+        Some(FoldData::Var(v)) => v,
+        _ => return false,
+    };
+    match get(cid) {
+        Some(FoldData::Var(v)) => {
+            v != d_in // test if different variables
+        }
+        _ => false
+    }
+}
+
 impl Analysis<Math> for ConstantFold {
-    type Data = Option<Constant>;
+    type Data = Option<FoldData>;
     fn make(egraph: &EGraph, enode: &Math) -> Self::Data {
         if !egraph.analysis.constant_fold {
             return None;
         }
 
-        let x = |id: &Id| egraph[*id].data.as_ref();
+        let x = |id: &Id| {
+           let data = egraph[*id].data.as_ref();
+           match data {
+                Some(fdata) => {
+                    match fdata {
+                        FoldData::Const(c) => Some(c),
+                        FoldData::Var(_) => None,
+                    }
+                },
+                None => None,
+           }
+        };
+        let ret_c = |c: Constant| Some(FoldData::Const(c));
+        let ret_var = |c: Symbol| Some(FoldData::Var(c));
         match enode {
-            Math::Constant(c) => Some(c.clone()),
+            Math::Constant(c) => ret_c(c.clone()),
+            Math::Symbol(s) => ret_var(s.clone()),
 
             // real
-            Math::Add([_p, a, b]) => Some(x(a)? + x(b)?),
-            Math::Sub([_p, a, b]) => Some(x(a)? - x(b)?),
-            Math::Mul([_p, a, b]) => Some(x(a)? * x(b)?),
+            Math::Add([_p, a, b]) => ret_c(x(a)? + x(b)?),
+            Math::Sub([_p, a, b]) => ret_c(x(a)? - x(b)?),
+            Math::Mul([_p, a, b]) => ret_c(x(a)? * x(b)?),
             Math::Div([_p, a, b]) => {
                 if x(b)?.is_zero() {
                     None
                 } else {
-                    Some(x(a)? / x(b)?)
+                    ret_c(x(a)? / x(b)?)
                 }
             }
-            Math::Neg([_p, a]) => Some(-x(a)?.clone()),
+            Math::Neg([_p, a]) => ret_c(-x(a)?.clone()),
             Math::Pow([_p, a, b]) => {
                 if x(b)?.is_integer() {
-                    Some(Pow::pow(x(a)?, x(b)?.to_integer()))
+                    ret_c(Pow::pow(x(a)?, x(b)?.to_integer()))
                 } else {
                     None
                 }
@@ -116,7 +163,7 @@ impl Analysis<Math> for ConstantFold {
                     let s2 = a.denom().sqrt();
                     let is_perfect = &(&s1 * &s1) == a.numer() && &(&s2 * &s2) == a.denom();
                     if is_perfect {
-                        Some(Ratio::new(s1, s2))
+                        ret_c(Ratio::new(s1, s2))
                     } else {
                         None
                     }
@@ -124,11 +171,29 @@ impl Analysis<Math> for ConstantFold {
                     None
                 }
             }
-            Math::Fabs([_p, a]) => Some(x(a)?.clone().abs()),
-            Math::Floor([_p, a]) => Some(x(a)?.floor()),
-            Math::Ceil([_p, a]) => Some(x(a)?.ceil()),
-            Math::Round([_p, a]) => Some(x(a)?.round()),
+            Math::Fabs([_p, a]) => ret_c(x(a)?.clone().abs()),
+            Math::Floor([_p, a]) => ret_c(x(a)?.floor()),
+            Math::Ceil([_p, a]) => ret_c(x(a)?.ceil()),
+            Math::Round([_p, a]) => ret_c(x(a)?.round()),
 
+            // derivative rule for deriving constant or different variable
+            Math::D([_p, a, v]) => {
+                if is_constant_or_different_variable(egraph, a, v) {
+                    ret_c(Ratio::new(BigInt::from(0), BigInt::from(1)))
+                } else {
+                    None
+                }
+            }
+
+            // substitution rule for substituting constant or different variable
+            Math::Subst([_p, expr, var, _value]) => {
+                if is_constant_or_different_variable(egraph, expr, var) {
+                    Some(egraph[*expr].data.as_ref()?.clone())
+                } else {
+                    None
+                }
+            }
+            
             _ => None,
         }
     }
@@ -154,7 +219,10 @@ impl Analysis<Math> for ConstantFold {
 
     fn modify(egraph: &mut EGraph, id: Id) {
         if let Some(constant) = egraph[id].data.clone() {
-            let added = egraph.add(Math::Constant(constant));
+            let added = match constant {
+                FoldData::Const(c) => egraph.add(Math::Constant(c)),
+                FoldData::Var(v) => egraph.add(Math::Symbol(v)),
+            };
             let (id, _) = egraph.union(id, added);
             if egraph.analysis.prune {
                 egraph[id].nodes.retain(|n| n.is_leaf())
