@@ -24,9 +24,26 @@ pub struct Extracted {
     pub cost: usize,
 }
 
+struct AstSizeDifferentiated;
+impl CostFunction<Math> for AstSizeDifferentiated {
+    type Cost = usize;
+    fn cost<C>(&mut self, enode: &Math, mut costs: C) -> Self::Cost
+    where
+        C: FnMut(Id) -> Self::Cost
+    {
+        let op_cost = match enode {
+            Math::D(_) => 100,
+            Math::Subst(_) => 100,
+            _ => 1
+        };
+        enode.fold(op_cost, |sum, id| sum + costs(id))
+    }
+}
+
+
 impl IterationData<Math, ConstantFold> for IterData {
     fn make(runner: &Runner) -> Self {
-        let mut extractor = Extractor::new(&runner.egraph, AstSize);
+        let mut extractor = Extractor::new(&runner.egraph, AstSizeDifferentiated);
         let extracted = runner
             .roots
             .iter()
@@ -107,6 +124,9 @@ fn is_constant_or_different_variable(egraph: &EGraph, cid: &Id, vid: &Id) -> boo
     match get(cid) {
         Some(FoldData::Var(v)) => {
             v != d_in // test if different variables
+        }
+        Some(FoldData::Const(_)) => {
+            true
         }
         _ => false
     }
