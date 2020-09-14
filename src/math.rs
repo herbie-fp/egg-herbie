@@ -170,7 +170,7 @@ impl Analysis<Math> for ConstantFold {
             }
             Math::Neg([_p, a]) => ret_c(-x(a)?.clone()),
             Math::Pow([_p, a, b]) => {
-                if x(b)?.is_integer() {
+                if x(b)?.is_integer()  && !(x(a)?.is_zero() && (x(b)?.is_zero() || x(b)?.is_negative())) {
                     ret_c(Pow::pow(x(a)?, x(b)?.to_integer()))
                 } else {
                     None
