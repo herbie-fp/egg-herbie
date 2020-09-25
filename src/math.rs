@@ -1,7 +1,7 @@
 use egg::*;
 
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::fmt::Display;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use num_bigint::BigInt;
 use num_rational::Ratio;
@@ -29,17 +29,40 @@ impl CostFunction<Math> for AstSizeDifferentiated {
     type Cost = usize;
     fn cost<C>(&mut self, enode: &Math, mut costs: C) -> Self::Cost
     where
-        C: FnMut(Id) -> Self::Cost
+        C: FnMut(Id) -> Self::Cost,
     {
+        let high_price = 100;
         let op_cost = match enode {
-            Math::D(_) => 100,
-            Math::Subst(_) => 100,
-            _ => 1
+            Math::D(_) => high_price,
+            Math::Subst(_) => high_price,
+            Math::Constant(c) => {
+                if c.is_zero() {
+                    0
+                } else {
+                    1
+                }
+            },
+            // check division by zero
+            Math::TryDiv([_p, _oldnum, _olddenom, _num, denom, _hist]) => {
+                if costs(*denom).is_zero() {
+                    high_price
+                } else {
+                    1
+                }
+            },
+            Math::Lim([_p, _originalnum, _originaldenom, _num, denom, _var, _value]) => {
+                if costs(*denom).is_zero() {
+                    high_price
+                } else {
+                    high_price / 2 // Has the potential to resolve in simplification phase of differentiation
+                }
+            },
+
+            _ => 1,
         };
         enode.fold(op_cost, |sum, id| sum + costs(id))
     }
 }
-
 
 impl IterationData<Math, ConstantFold> for IterData {
     fn make(runner: &Runner) -> Self {
@@ -67,6 +90,7 @@ define_language! {
         "-" = Sub([Id; 3]),
         "*" = Mul([Id; 3]),
         "/" = Div([Id; 3]),
+        "try-/" = TryDiv([Id; 6]),
         "pow" = Pow([Id; 3]),
         "neg" = Neg([Id; 2]),
         "sqrt" = Sqrt([Id; 2]),
@@ -77,6 +101,7 @@ define_language! {
 
         "subst" = Subst([Id; 4]),
         "d" = D([Id; 3]),
+        "lim" = Lim([Id; 7]),
 
         Constant(Constant),
         Symbol(egg::Symbol),
@@ -125,10 +150,8 @@ fn is_constant_or_different_variable(egraph: &EGraph, cid: &Id, vid: &Id) -> boo
         Some(FoldData::Var(v)) => {
             v != d_in // test if different variables
         }
-        Some(FoldData::Const(_)) => {
-            true
-        }
-        _ => false
+        Some(FoldData::Const(_)) => true,
+        _ => false,
     }
 }
 
@@ -140,16 +163,14 @@ impl Analysis<Math> for ConstantFold {
         }
 
         let x = |id: &Id| {
-           let data = egraph[*id].data.as_ref();
-           match data {
-                Some(fdata) => {
-                    match fdata {
-                        FoldData::Const(c) => Some(c),
-                        FoldData::Var(_) => None,
-                    }
+            let data = egraph[*id].data.as_ref();
+            match data {
+                Some(fdata) => match fdata {
+                    FoldData::Const(c) => Some(c),
+                    FoldData::Var(_) => None,
                 },
                 None => None,
-           }
+            }
         };
         let ret_c = |c: Constant| Some(FoldData::Const(c));
         let ret_var = |c: Symbol| Some(FoldData::Var(c));
@@ -160,8 +181,21 @@ impl Analysis<Math> for ConstantFold {
             // real
             Math::Add([_p, a, b]) => ret_c(x(a)? + x(b)?),
             Math::Sub([_p, a, b]) => ret_c(x(a)? - x(b)?),
-            Math::Mul([_p, a, b]) => ret_c(x(a)? * x(b)?),
+            Math::Mul([_p, a, b]) => {
+                if x(a)?.is_zero() || x(b)?.is_zero() {
+                    ret_c(Ratio::new(BigInt::from(0), BigInt::from(1)))
+                } else {
+                    ret_c(x(a)? * x(b)?)
+                }
+            }
             Math::Div([_p, a, b]) => {
+                if x(b)?.is_zero() {
+                    None
+                } else {
+                    ret_c(x(a)? / x(b)?)
+                }
+            }
+            Math::TryDiv([_p, _c, _d, a, b, _hist]) => {
                 if x(b)?.is_zero() {
                     None
                 } else {
@@ -170,7 +204,9 @@ impl Analysis<Math> for ConstantFold {
             }
             Math::Neg([_p, a]) => ret_c(-x(a)?.clone()),
             Math::Pow([_p, a, b]) => {
-                if x(b)?.is_integer()  && !(x(a)?.is_zero() && (x(b)?.is_zero() || x(b)?.is_negative())) {
+                if x(b)?.is_integer()
+                    && !(x(a)?.is_zero() && (x(b)?.is_zero() || x(b)?.is_negative()))
+                {
                     ret_c(Pow::pow(x(a)?, x(b)?.to_integer()))
                 } else {
                     None
@@ -213,7 +249,16 @@ impl Analysis<Math> for ConstantFold {
                     None
                 }
             }
-            
+
+            // constant fold limits
+            Math::Lim([_p, _originalnum, _originaldenom, num, denom, _var, _value]) => {
+                if x(denom)?.is_zero() {
+                    None
+                } else {
+                    ret_c(x(num)? / x(denom)?)
+                }
+            }
+
             _ => None,
         }
     }
