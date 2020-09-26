@@ -31,7 +31,7 @@ impl CostFunction<Math> for AstSizeDifferentiated {
     where
         C: FnMut(Id) -> Self::Cost,
     {
-        let high_price = 100;
+        let high_price = 100000;
         let op_cost = match enode {
             Math::D(_) => high_price,
             Math::Subst(_) => high_price,
@@ -43,9 +43,9 @@ impl CostFunction<Math> for AstSizeDifferentiated {
                 }
             },
             // check division by zero
-            Math::TryDiv([_p, _oldnum, _olddenom, _num, denom, _hist]) => {
+            Math::TryDiv([_p, _oldexpr, _num, denom, _hist]) => {
                 if costs(*denom).is_zero() {
-                    high_price
+                    high_price*2 // not useful at all
                 } else {
                     1
                 }
@@ -60,7 +60,14 @@ impl CostFunction<Math> for AstSizeDifferentiated {
 
             _ => 1,
         };
-        enode.fold(op_cost, |sum, id| sum + costs(id))
+        let rest_cost = match enode {
+            Math::TryDiv([_p, _oldexpr, num, denom, _hist]) => {
+                costs(*num) + costs(*denom)
+            },
+            _ => enode.fold(0, |sum, id| sum + costs(id))
+        };
+
+        op_cost + rest_cost
     }
 }
 
@@ -90,7 +97,7 @@ define_language! {
         "-" = Sub([Id; 3]),
         "*" = Mul([Id; 3]),
         "/" = Div([Id; 3]),
-        "try-/" = TryDiv([Id; 6]),
+        "try-/" = TryDiv([Id; 5]),
         "pow" = Pow([Id; 3]),
         "neg" = Neg([Id; 2]),
         "sqrt" = Sqrt([Id; 2]),
@@ -195,7 +202,7 @@ impl Analysis<Math> for ConstantFold {
                     ret_c(x(a)? / x(b)?)
                 }
             }
-            Math::TryDiv([_p, _c, _d, a, b, _hist]) => {
+            Math::TryDiv([_p, _originalexpr, a, b, _hist]) => {
                 if x(b)?.is_zero() {
                     None
                 } else {
@@ -274,6 +281,7 @@ impl Analysis<Math> for ConstantFold {
             (Some(a), Some(ref b)) => {
                 if a != b {
                     if !self.unsound.swap(true, Ordering::SeqCst) {
+                        println!("Bad merge detected: {} != {}", a, b);
                         log::warn!("Bad merge detected: {} != {}", a, b);
                     }
                 }
