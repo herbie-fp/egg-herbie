@@ -31,7 +31,7 @@ impl CostFunction<Math> for AstSizeDifferentiated {
     where
         C: FnMut(Id) -> Self::Cost,
     {
-        let high_price = 100000;
+        let high_price = 10000000;
         let op_cost = match enode {
             Math::D(_) => high_price,
             Math::Subst(_) => high_price,
@@ -45,16 +45,16 @@ impl CostFunction<Math> for AstSizeDifferentiated {
             // check division by zero
             Math::TryDiv([_p, _oldexpr, _num, denom, _hist]) => {
                 if costs(*denom).is_zero() {
-                    high_price*2 // not useful at all
+                    high_price*high_price // not useful at all
                 } else {
                     1
                 }
             },
             Math::Lim([_p, _originalnum, _originaldenom, _num, denom, _var, _value]) => {
                 if costs(*denom).is_zero() {
-                    high_price
+                    high_price / 2  // Has the potential to resolve in simplification phase of differentiation
                 } else {
-                    high_price / 2 // Has the potential to resolve in simplification phase of differentiation
+                    high_price / 4
                 }
             },
 
@@ -179,6 +179,14 @@ impl Analysis<Math> for ConstantFold {
                 None => None,
             }
         };
+
+        let is_zero = |id: &Id| {
+            match x(id) {
+                Some(c) => c.is_zero(),
+                _ => false
+            }
+        };
+
         let ret_c = |c: Constant| Some(FoldData::Const(c));
         let ret_var = |c: Symbol| Some(FoldData::Var(c));
         match enode {
@@ -189,21 +197,21 @@ impl Analysis<Math> for ConstantFold {
             Math::Add([_p, a, b]) => ret_c(x(a)? + x(b)?),
             Math::Sub([_p, a, b]) => ret_c(x(a)? - x(b)?),
             Math::Mul([_p, a, b]) => {
-                if x(a)?.is_zero() || x(b)?.is_zero() {
+                if is_zero(a) || is_zero(b) {
                     ret_c(Ratio::new(BigInt::from(0), BigInt::from(1)))
                 } else {
                     ret_c(x(a)? * x(b)?)
                 }
             }
             Math::Div([_p, a, b]) => {
-                if x(b)?.is_zero() {
+                if is_zero(b) {
                     None
                 } else {
                     ret_c(x(a)? / x(b)?)
                 }
             }
             Math::TryDiv([_p, _originalexpr, a, b, _hist]) => {
-                if x(b)?.is_zero() {
+                if is_zero(b) {
                     None
                 } else {
                     ret_c(x(a)? / x(b)?)
@@ -211,7 +219,11 @@ impl Analysis<Math> for ConstantFold {
             }
             Math::Neg([_p, a]) => ret_c(-x(a)?.clone()),
             Math::Pow([_p, a, b]) => {
-                if x(b)?.is_integer()
+                if  is_zero(b) && !is_zero(a) {
+                    ret_c(Ratio::new(BigInt::from(1), BigInt::from(1)))
+                } else if  is_zero(a) && !is_zero(b) {
+                    ret_c(Ratio::new(BigInt::from(0), BigInt::from(1)))
+                } else if x(b)?.is_integer()
                     && !(x(a)?.is_zero() && (x(b)?.is_zero() || x(b)?.is_negative()))
                 {
                     ret_c(Pow::pow(x(a)?, x(b)?.to_integer()))

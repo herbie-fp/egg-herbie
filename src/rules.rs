@@ -1,4 +1,8 @@
+use egg::{rewrite, Id, Subst};
 use crate::math::*;
+
+use num_bigint::BigInt;
+use num_rational::Ratio;
 
 use indexmap::IndexMap;
 use std::str::FromStr;
@@ -7,12 +11,44 @@ pub fn mk_rules(tuples: &[(&str, &str, &str)]) -> Vec<Rewrite> {
     tuples
         .iter()
         .map(|(name, left, right)| {
-            let left = Pattern::from_str(left).unwrap();
-            let right = Pattern::from_str(right).unwrap();
-            Rewrite::new(*name, *name, left, right).unwrap()
+            if name.starts_with("d-power-constant") {
+                rewrite!(*name; {Pattern::from_str(left).unwrap()} => {Pattern::from_str(right).unwrap()} if is_const_geq("?b", Ratio::new(BigInt::from(1), BigInt::from(1))))
+            } else if name.starts_with("d-power-general") {
+                rewrite!(*name; {Pattern::from_str(left).unwrap()} => {Pattern::from_str(right).unwrap()} if is_not_const_geq("?b", Ratio::new(BigInt::from(1), BigInt::from(1))))
+            } else {
+                rewrite!(*name; {Pattern::from_str(left).unwrap()} => {Pattern::from_str(right).unwrap()})
+            }
         })
         .collect()
 }
+
+fn is_not_const_geq(var: &str, val: Constant) -> impl Fn(&mut EGraph, Id, &Subst) -> bool {
+    let var = var.parse().unwrap();
+    move |egraph, _, subst| {
+        !egraph[subst[var]]
+            .nodes
+            .iter()
+            .any(|n| match n {
+                        Math::Constant(a) => a >= &val,
+                        _ => false
+                    })
+    }
+}
+
+
+fn is_const_geq(var: &str, val: Constant) -> impl Fn(&mut EGraph, Id, &Subst) -> bool {
+    let var = var.parse().unwrap();
+    move |egraph, _, subst| {
+        egraph[subst[var]]
+            .nodes
+            .iter()
+            .any(|n| match n {
+                        Math::Constant(a) => a >= &val,
+                        _ => false
+                    })
+    }
+}
+
 
 pub fn math_rules() -> IndexMap<&'static str, Vec<Rewrite>> {
     let mut m = IndexMap::new();
