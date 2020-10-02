@@ -7,6 +7,7 @@ use math::*;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::{slice, sync::atomic::Ordering};
+use std::time::Duration;
 
 unsafe fn cstring_to_recexpr(c_string: *const c_char) -> Option<RecExpr> {
     match CStr::from_ptr(c_string).to_str() {
@@ -156,6 +157,8 @@ pub unsafe extern "C" fn egraph_run_iter(
             runner.egraph.analysis.constant_fold = is_constant_folding_enabled;
             runner = runner
                 .with_node_limit(limit as usize)
+                .with_iter_limit(1000000000)
+                .with_time_limit(Duration::new(100, 0))
                 .with_hook(|r| {
                     if r.egraph.analysis.unsound.load(Ordering::SeqCst) {
                         Err("Unsoundness detected".into())
