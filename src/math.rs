@@ -162,6 +162,17 @@ fn is_constant_or_different_variable(egraph: &EGraph, cid: &Id, vid: &Id) -> boo
     }
 }
 
+fn is_not_subst(egraph: &EGraph, var: &Id) -> bool {
+    !egraph[*var]
+            .nodes
+            .iter()
+            .any(|n| match n {
+                    Math::Subst(_) => true,
+                    _ => false
+                })
+}
+
+
 impl Analysis<Math> for ConstantFold {
     type Data = Option<FoldData>;
     fn make(egraph: &EGraph, enode: &Math) -> Self::Data {
@@ -187,6 +198,13 @@ impl Analysis<Math> for ConstantFold {
             }
         };
 
+        let has_data = |id: &Id| {
+            match egraph[*id].data.as_ref() {
+                Some(_) => true,
+                _ => false,
+            }
+        };
+
         let ret_c = |c: Constant| Some(FoldData::Const(c));
         let ret_var = |c: Symbol| Some(FoldData::Var(c));
         match enode {
@@ -197,7 +215,9 @@ impl Analysis<Math> for ConstantFold {
             Math::Add([_p, a, b]) => ret_c(x(a)? + x(b)?),
             Math::Sub([_p, a, b]) => ret_c(x(a)? - x(b)?),
             Math::Mul([_p, a, b]) => {
-                if is_zero(a) || is_zero(b) {
+                // check has_data when subst so we don't multiply (* 0 (trydiv 1 0))
+                if (is_zero(a) && (has_data(b) || is_not_subst(egraph, b)))
+                    || (is_zero(b) && (has_data(a) || is_not_subst(egraph, a))) {
                     ret_c(Ratio::new(BigInt::from(0), BigInt::from(1)))
                 } else {
                     ret_c(x(a)? * x(b)?)
