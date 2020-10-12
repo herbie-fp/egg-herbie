@@ -70,6 +70,7 @@
 
 (define (egg-expr->expr expr eg-data)
   (define parsed (read (open-input-string expr)))
+  (println parsed)
   (egg-parsed->expr parsed (egraph-data-egg->herbie-dict eg-data)))
 
 (define (egg-parsed->expr parsed rename-dict)

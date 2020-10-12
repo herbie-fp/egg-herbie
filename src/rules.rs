@@ -1,4 +1,4 @@
-use egg::{rewrite, Id, Subst};
+use egg::{rewrite, Id, Subst, Var, Applier, Extractor};
 use crate::math::*;
 
 use num_bigint::BigInt;
@@ -15,11 +15,126 @@ pub fn mk_rules(tuples: &[(&str, &str, &str)]) -> Vec<Rewrite> {
                 rewrite!(*name; {Pattern::from_str(left).unwrap()} => {Pattern::from_str(right).unwrap()} if is_const_geq("?b", Ratio::new(BigInt::from(1), BigInt::from(1))))
             } else if name.starts_with("d-power-general") {
                 rewrite!(*name; {Pattern::from_str(left).unwrap()} => {Pattern::from_str(right).unwrap()} if is_not_const_geq("?b", Ratio::new(BigInt::from(1), BigInt::from(1))))
+            } else if name.starts_with("limit-evaluate") {
+                rewrite!(*name; {Pattern::from_str(left).unwrap()} => {Pattern::from_str(right).unwrap()} if is_const_neq("?b", Ratio::new(BigInt::from(0), BigInt::from(1))))
+            } else if name.starts_with("limit-approximate") {
+                rewrite!(*name; {Pattern::from_str(left).unwrap()} => {Pattern::from_str(right).unwrap()} if is_const_neq("?d", Ratio::new(BigInt::from(0), BigInt::from(1))))
+            } else if name.starts_with("subst-expr") {
+                println!("{}, {}", name, left);
+                rewrite!(*name; {Pattern::from_str(left).unwrap()} => {SubstApply{a: "?a".parse().unwrap(),
+                                                                                 x: "?x".parse().unwrap(),
+                                                                                    y: "?y".parse().unwrap()}})
             } else {
                 rewrite!(*name; {Pattern::from_str(left).unwrap()} => {Pattern::from_str(right).unwrap()})
             }
         })
         .collect()
+}
+
+fn only_subst_lim(egraph: &EGraph, expr: &Id) -> bool {
+    !egraph[*expr].nodes.iter()
+                        .any(|n| {
+                                match n {
+                                    Math::Lim(_) => false,
+                                    Math::Subst(_) => false,
+                                    _ => true
+                                }
+                            })
+}
+
+fn union_recexpr(first: &mut Vec<Math>, mut second: Vec<Math>) -> usize {
+    let first_i = first.len()-1;
+    for i in 0..second.len() {
+        second[i] = second[i].map_children(|c| Id::from(usize::from(*c)+first.len()));
+    }
+    first.extend(second);
+    first_i
+}
+
+fn perform_substitution(extracted: RecExpr, symbol: RecExpr, value: RecExpr) -> RecExpr {
+    if symbol.as_ref().len() == 1 {
+        let node = &symbol.as_ref()[0];
+        let current: Vec<Math> = extracted.as_ref().iter().map(|r| r.clone()).collect();
+        let mut val_vec: Vec<Math> = value.as_ref().iter().map(|r| r.clone()).collect();
+        let val_index = union_recexpr(&mut val_vec, current);
+        let val = val_vec[val_index].clone();
+
+        let replaced : Vec<Math> =
+            val_vec.iter()
+                   .map(|n| {
+                    if n == node {
+                        val.clone()
+                    } else {
+                        match n {
+                            // convert divisions into try-/
+                            Math::Div([ty, num, denom]) => {
+                                // todo make this refer to itself
+                                Math::TryDiv([*ty, *num, *num, *denom, *num])
+                            }
+                            _ => n.clone()
+                        }
+                    }
+                   }).collect();
+
+        RecExpr::from(replaced)
+    } else {
+        extracted.clone()
+    }
+}
+
+fn try_subst(egraph: &EGraph, matched: &Id, expr: &Id, var: &Id, value: &Id) -> Option<RecExpr> {
+    let is_derived = egraph[*expr].data.fullyderived;
+
+    if is_derived && only_subst_lim(egraph, matched) {
+        let mut extractor = Extractor::new(&egraph, AstSizeDifferentiated);
+        let (cost, extracted) = extractor.find_best(*expr);
+        let (_, symbol) = extractor.find_best(*var);
+        let (_, val) = extractor.find_best(*value);
+        let high_price = 10000000;
+        if cost < (high_price / 20) {
+            Some(perform_substitution(extracted, symbol, val))
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct SubstApply {
+    a: Var,
+    x: Var,
+    y: Var,
+}
+
+impl Applier<Math, ConstantFold> for SubstApply {
+    fn apply_one(&self, egraph: &mut EGraph, matched_id: Id, subst: &Subst) -> Vec<Id> {
+        let expr : Id = subst[self.a];
+        let var : Id = subst[self.x];
+        let value : Id = subst[self.y];
+
+        match try_subst(egraph, &matched_id, &expr, &var, &value) {
+            Some(rec) => {
+                vec![egraph.add_expr(&rec)]
+            }
+            _ => vec![]
+        }
+    }
+}
+
+fn is_const_neq(var: &str, val: Constant) -> impl Fn(&mut EGraph, Id, &Subst) -> bool {
+    let var = var.parse().unwrap();
+    move |egraph, _, subst| {
+        egraph[subst[var]]
+            .nodes
+            .iter()
+            .any(|n| match n {
+                        Math::Constant(a) => a != &val,
+                        _ => false
+                    })
+    }
 }
 
 fn is_not_const_geq(var: &str, val: Constant) -> impl Fn(&mut EGraph, Id, &Subst) -> bool {
