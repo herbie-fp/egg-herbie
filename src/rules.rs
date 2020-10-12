@@ -20,7 +20,6 @@ pub fn mk_rules(tuples: &[(&str, &str, &str)]) -> Vec<Rewrite> {
             } else if name.starts_with("limit-approximate") {
                 rewrite!(*name; {Pattern::from_str(left).unwrap()} => {Pattern::from_str(right).unwrap()} if is_const_neq("?d", Ratio::new(BigInt::from(0), BigInt::from(1))))
             } else if name.starts_with("subst-expr") {
-                println!("{}, {}", name, left);
                 rewrite!(*name; {Pattern::from_str(left).unwrap()} => {SubstApply{a: "?a".parse().unwrap(),
                                                                                  x: "?x".parse().unwrap(),
                                                                                     y: "?y".parse().unwrap()}})
@@ -54,8 +53,13 @@ fn union_recexpr(first: &mut Vec<Math>, mut second: Vec<Math>) -> usize {
 fn perform_substitution(extracted: RecExpr, symbol: RecExpr, value: RecExpr) -> RecExpr {
     if symbol.as_ref().len() == 1 {
         let node = &symbol.as_ref()[0];
+        // we make a copy to union so we can make trydiv refer to itself
+        let mut copy: Vec<Math> = extracted.as_ref().iter().map(|r| r.clone()).collect();
+        let copylen: usize = copy.len();
+
         let current: Vec<Math> = extracted.as_ref().iter().map(|r| r.clone()).collect();
         let mut val_vec: Vec<Math> = value.as_ref().iter().map(|r| r.clone()).collect();
+        let vallen: usize = val_vec.len();
         let val_index = union_recexpr(&mut val_vec, current);
         let val = val_vec[val_index].clone();
 
@@ -65,18 +69,28 @@ fn perform_substitution(extracted: RecExpr, symbol: RecExpr, value: RecExpr) -> 
                     if n == node {
                         val.clone()
                     } else {
-                        match n {
-                            // convert divisions into try-/
-                            Math::Div([ty, num, denom]) => {
-                                // todo make this refer to itself
-                                Math::TryDiv([*ty, *num, *num, *denom, *num])
-                            }
-                            _ => n.clone()
-                        }
+                        n.clone()
                     }
                    }).collect();
 
-        RecExpr::from(replaced)
+        union_recexpr(&mut copy, replaced);
+
+        // this fails if your value includes a Div (We only substitute constants)
+        let offset: usize = vallen + copylen;
+        // replace divs with trydivs
+        for i in offset..copy.len() {
+            match copy[i] {
+                Math::Div([t, num, denom]) => {
+                    copy[i] = Math::TryDiv([t, Id::from(i - offset), num, denom, num]);
+                }
+                Math::TryDiv([t, _original, num, denom, _numagain]) => {
+                    copy[i] = Math::TryDiv([t, Id::from(i-offset), num, denom, num]);
+                }
+                _ => ()
+            }
+        }
+
+        RecExpr::from(copy)
     } else {
         extracted.clone()
     }
