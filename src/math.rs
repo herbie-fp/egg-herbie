@@ -59,6 +59,9 @@ impl CostFunction<Math> for AstSizeDifferentiated {
                 }
             },
 
+            Math::Div(_) => 30, // division expensive because it's bad for taylor
+            Math::Tan(_) => 30, // tan has asymptotes 
+
             _ => 1,
         };
         let rest_cost = match enode {
@@ -106,6 +109,7 @@ define_language! {
         "ceil" = Ceil([Id; 2]),
         "floor" = Floor([Id; 2]),
         "round" = Round([Id; 2]),
+        "tan" = Tan([Id; 2]),
 
         "subst" = Subst([Id; 4]),
         "d" = D([Id; 3]),
@@ -124,6 +128,7 @@ impl Math {
             Math::Sub([a, b, c]) => Math::Sub([f(a), f(b), f(c)]),
             Math::Mul([a, b, c]) => Math::Mul([f(a), f(b), f(c)]),
             Math::Div([a, b, c]) => Math::Div([f(a), f(b), f(c)]),
+            Math::Tan([a, b])   => Math::Tan([f(a), f(b)]),
             Math::TryDiv([a, b, c, d, e]) => Math::TryDiv([f(a), f(b), f(c), f(d), f(e)]),
             Math::Pow([a, b, c]) => Math::Pow([f(a), f(b), f(c)]),
             Math::Neg([a, b]) => Math::Neg([f(a), f(b)]),
