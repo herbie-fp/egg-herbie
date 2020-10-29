@@ -87,6 +87,14 @@ impl Analysis<Math> for ConstantFold {
         }
 
         let x = |id: &Id| egraph[*id].data.as_ref();
+        let is_zero = |id: &Id| {
+            let data = egraph[*id].data.as_ref();
+            match data {
+                Some(data) => data.is_zero(),
+                None => false,
+            }
+        };
+
         match enode {
             Math::Constant(c) => Some(c.clone()),
 
