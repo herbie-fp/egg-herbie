@@ -156,6 +156,7 @@ pub unsafe extern "C" fn egraph_run_iter(
             runner.egraph.analysis.constant_fold = is_constant_folding_enabled;
             runner = runner
                 .with_node_limit(limit as usize)
+                .with_scheduler(egg::SimpleScheduler)
                 .with_hook(|r| {
                     if r.egraph.analysis.unsound.load(Ordering::SeqCst) {
                         Err("Unsoundness detected".into())
