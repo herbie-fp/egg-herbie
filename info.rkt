@@ -6,14 +6,11 @@
 (define pkg-desc "Racket bindings for simplifying math expressions using egg")
 
 (define deps
-  ; ("egg-herbie-osx" #:platform "i386-macosx" #:version "1.5")
-  ("egg-herbie-osx" #:platform "x86_64-macosx" #:version "1.5")
-  ; ("egg-herbie-osx" #:platform "ppc-macosx" #:version "1.5")
-  ; ("egg-herbie-osx" #:platform "aarch64-macosx" #:version "1.5")
-  ; ("egg-herbie-windows" #:platform "win32\\i386" #:version "1.5")
-  ("egg-herbie-windows" #:platform "win32\\x86_64" #:version "1.5")
-  ("egg-herbie-linux" #:platform "x86_64-linux" #:version "1.5")
-  ("egg-herbie-linux" #:platform "x86_64-linux-natipkg" #:version "1.5"))   ; Dockerfile
+  '(("egg-herbie-osx" #:platform "x86_64-macosx" #:version "1.5")
+    ("egg-herbie-windows" #:platform "win32\\x86_64" #:version "1.5")
+    ("egg-herbie-linux" #:platform "x86_64-linux" #:version "1.5")
+    ("egg-herbie-linux" #:platform "x86_64-linux-natipkg" #:version "1.5")))   ; Dockerfile
 
 (define pkg-authors
-  `("Oliver Flatt"))
+  `("Oliver Flatt"
+    "Brett Saiki"))
