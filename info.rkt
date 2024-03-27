@@ -14,3 +14,6 @@
 (define pkg-authors
   `("Oliver Flatt"
     "Brett Saiki"))
+
+(define license
+  'MIT)
