@@ -7,14 +7,13 @@
 
 (define deps
   '(("base" #:version "8.0")
+    ("egg-herbie-macosm1" #:platform "aarch64-macosx" #:version "2.0")
     ("egg-herbie-osx" #:platform "x86_64-macosx" #:version "2.0")
     ("egg-herbie-windows" #:platform "win32\\x86_64" #:version "2.0")
     ("egg-herbie-linux" #:platform "x86_64-linux" #:version "2.0")
     ("egg-herbie-linux" #:platform "x86_64-linux-natipkg" #:version "2.0")))   ; Dockerfile
 
-(define pkg-authors
-  `("Oliver Flatt"
-    "Brett Saiki"))
+(define pkg-authors `("Pavel Panchekha" "Oliver Flatt" "Brett Saiki"))
 
 (define license
   'MIT)
