@@ -1,7 +1,7 @@
 #lang info
 
 (define collection "egg-herbie-redirect")
-(define version "2.0")
+(define version "2.2")
 
 (define pkg-desc "Racket bindings for simplifying math expressions using egg")
 
